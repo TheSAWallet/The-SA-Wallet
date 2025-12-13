@@ -95,7 +95,7 @@ padding-top: 20px;
 <h2>💸 Tax Estimator (2026)</h2>
 
 <label>Income Frequency</label>
-<select id="tax_period" onchange="toggleBonusOption()">
+<select id="tax_period">
 <option value="monthly">Monthly</option>
 <option value="annual">Annual (Yearly Total)</option>
 </select>
@@ -137,17 +137,15 @@ padding-top: 20px;
 <button class="btn-calc" onclick="calcTax()">Estimate Take Home</button>
 
 <div id="res-tax" class="result-box">
-<div class="res-row"><span>Gross Income (Monthly Avg):</span> <span class="res-val" id="rt_gross">R0</span></div>
-<div class="res-row"><span>Taxable Income (Annual):</span> <span class="res-val" id="rt_taxable">R0</span></div>
-<div class="res-row" style="color:#ef4444;"><span>PAYE (Monthly Tax):</span> <span class="res-val" id="rt_paye">R0</span></div>
-<div class="res-row" style="color:#ef4444;"><span>UIF:</span> <span class="res-val" id="rt_uif">R0</span></div>
-<div class="res-row" style="color:#ef4444;"><span>Pension (Deducted):</span> <span class="res-val" id="rt_pension">R0</span></div>
-<div class="res-row" style="color:var(--accent);"><span>Medical Tax Credit:</span> <span class="res-val" id="rt_med_credit">+R0</span></div>
+<div class="res-row"><span>Gross Income (Annual):</span> <span class="res-val" id="rt_gross">R0</span></div>
+<div class="res-row"><span>Taxable Income:</span> <span class="res-val" id="rt_taxable">R0</span></div>
+<div class="res-row" style="color:#ef4444;"><span>Annual Tax (PAYE):</span> <span class="res-val" id="rt_annual_tax">R0</span></div>
+<div class="res-row" style="color:#ef4444;"><span>Annual Deductions:</span> <span class="res-val" id="rt_annual_deduct">R0</span></div>
 <div class="res-row" style="margin-top:15px; border-top:1px solid var(--border); padding-top:10px;">
-<span style="font-weight:bold;">Net Pay (Take Home):</span>
+<span style="font-weight:bold;">Monthly Take Home:</span>
 </div>
 <div class="res-total" id="rt_net">R0.00</div>
-<div class="note">Note: Monthly values shown are averages when annual income or a 13th cheque is selected.</div>
+<div class="note" id="pay_note">Note: Values shown are based on your selected frequency.</div>
 </div>
 </div>
 </div>
@@ -251,32 +249,23 @@ const isActive = document.getElementById('tax_medical_active').checked;
 document.getElementById('medical_inputs').style.display = isActive ? 'block' : 'none';
 }
 
-// Toggle Bonus Option based on frequency
-function toggleBonusOption() {
-const period = document.getElementById('tax_period').value;
-const bonusGroup = document.getElementById('bonus_group');
-if (period === 'annual') {
-bonusGroup.style.display = 'none';
-} else {
-bonusGroup.style.display = 'flex';
-}
-}
-
 const fmt = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
 
 // 1. TAX LOGIC (2026 SARS TABLES)
 function calcTax() {
 const amount = parseFloat(document.getElementById('tax_income').value) || 0;
-const period = document.getElementById('tax_period').value; // monthly or annual
+const period = document.getElementById('tax_period').value;
+const use13th = document.getElementById('tax_13th').checked;
+
+// Divider logic: If 13th cheque is ticked, we divide by 13 to get monthly cash flow
+const divisor = use13th ? 13 : 12;
 
 let annualGross = 0;
-
-// Determine Annual Gross based on frequency
 if (period === 'annual') {
 annualGross = amount;
 } else {
-// Monthly
-const use13th = document.getElementById('tax_13th').checked;
+// Monthly input means "Regular Monthly Pay"
+// If they ticked 13th cheque, we assume the input is x13
 annualGross = use13th ? amount * 13 : amount * 12;
 }
 
@@ -312,28 +301,30 @@ medCreditAnnual = monthlyCredit * 12;
 
 tax = Math.max(0, tax - medCreditAnnual);
 
-let uifMonthly = 0;
+let uifAnnual = 0;
 if (document.getElementById('tax_uif').checked) {
-// UIF is calculated on monthly gross remuneration
-const monthlyBase = annualGross / 12;
-uifMonthly = Math.min(monthlyBase * 0.01, 177.12);
+// UIF capped at 177.12 per month, so approx 2125.44 annual
+const monthlyGross = annualGross / 12;
+const uifMonthly = Math.min(monthlyGross * 0.01, 177.12);
+uifAnnual = uifMonthly * 12; // Standardize to annual for calc
 }
 
-const annualTax = tax;
-const monthlyTax = annualTax / 12;
-const monthlyPension = pensionDedAnnual / 12;
+const annualNet = annualGross - tax - uifAnnual - pensionDedAnnual;
+const monthlyNet = annualNet / divisor; // This is the magic fix
 
-// Net Pay = (Annual Gross / 12) - Deductions
-const monthlyGrossAvg = annualGross / 12;
-const netPay = monthlyGrossAvg - monthlyTax - uifMonthly - monthlyPension;
-
-document.getElementById('rt_gross').innerText = fmt.format(monthlyGrossAvg);
+document.getElementById('rt_gross').innerText = fmt.format(annualGross);
 document.getElementById('rt_taxable').innerText = fmt.format(taxableIncome);
-document.getElementById('rt_paye').innerText = fmt.format(monthlyTax);
-document.getElementById('rt_uif').innerText = fmt.format(uifMonthly);
-document.getElementById('rt_pension').innerText = fmt.format(monthlyPension);
-document.getElementById('rt_med_credit').innerText = "+" + fmt.format(medCreditAnnual / 12);
-document.getElementById('rt_net').innerText = fmt.format(netPay);
+document.getElementById('rt_annual_tax').innerText = fmt.format(tax);
+document.getElementById('rt_annual_deduct').innerText = fmt.format(uifAnnual + pensionDedAnnual + tax);
+
+document.getElementById('rt_net').innerText = fmt.format(monthlyNet);
+
+// Dynamic Note
+const noteText = use13th ?
+"Note: Monthly pay is calculated as (Annual Net / 13) because you selected a 13th cheque." :
+"Note: Monthly pay is calculated as (Annual Net / 12).";
+document.getElementById('pay_note').innerText = noteText;
+
 document.getElementById('res-tax').style.display = 'block';
 }
 
@@ -380,13 +371,8 @@ const r = (parseFloat(document.getElementById('save_rate').value) || 0) / 100 / 
 const n = (parseFloat(document.getElementById('save_years').value) || 0) * 12;
 
 let futureValue;
-if (r === 0) {
-// Safety check for 0% interest
-futureValue = P + (PMT * n);
-}
-else {
-futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r;
-}
+if (r === 0) { futureValue = P + (PMT * n); }
+else { futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r; }
 
 const totalContrib = P + (PMT * n);
 document.getElementById('rs_contrib').innerText = fmt.format(totalContrib);
