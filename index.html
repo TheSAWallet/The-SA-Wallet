@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>The SA Wallet | Tax, Bond & Vehicle Calculator</title>
-<meta name="description" content="The SA Wallet: Free South African financial tools. Calculate 2025 SARS Tax, Vehicle Finance, Bond Repayments, and Savings goals.">
+<title>The SA Wallet | Tax 2026, Bond & Vehicle Calculator</title>
+<meta name="description" content="The SA Wallet: Free South African financial tools. Calculate 2026 SARS Tax, Vehicle Finance with Balloon, Bond Repayments, and Savings.">
 <meta name="author" content="The SA Wallet">
+<meta name="robots" content="index, follow">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SA Wallet">
@@ -33,11 +34,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helve
 /* Cards & Inputs */
 .card { background: var(--card); padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid var(--border); margin-bottom: 20px; }
 h2 { margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
-label { display: block; font-weight: 600; font-size: 0.85em; margin-bottom: 8px; color: var(--text); opacity: 0.8; }
+h3 { font-size: 0.95rem; text-transform: uppercase; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+
+label { display: block; font-weight: 600; font-size: 0.85em; margin-bottom: 8px; color: var(--text); opacity: 0.9; }
 input, select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; background: var(--bg); color: var(--text); box-sizing: border-box; margin-bottom: 15px; }
 input:focus { border-color: var(--primary); outline: none; }
 
-.btn-calc { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
+/* Checkbox & Radio Styles */
+.checkbox-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
+.checkbox-group label { margin: 0; cursor: pointer; }
+.checkbox-group input { width: auto; margin: 0; }
+
+.btn-calc { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
 .btn-calc:active { opacity: 0.9; transform: scale(0.98); }
 
 /* Results Box */
@@ -62,7 +70,7 @@ input:focus { border-color: var(--primary); outline: none; }
 </div>
 
 <div class="nav-tabs">
-<button class="tab-btn active" onclick="switchTab('tax', this)">💸 Tax (PAYE)</button>
+<button class="tab-btn active" onclick="switchTab('tax', this)">💸 Tax '26</button>
 <button class="tab-btn" onclick="switchTab('vehicle', this)">🚗 Car</button>
 <button class="tab-btn" onclick="switchTab('bond', this)">🏠 Bond</button>
 <button class="tab-btn" onclick="switchTab('wealth', this)">📈 Savings</button>
@@ -70,21 +78,55 @@ input:focus { border-color: var(--primary); outline: none; }
 
 <div id="tax" class="tool-section active">
 <div class="card">
-<h2>💸 Income Tax (2025)</h2>
+<h2>💸 Tax Estimator (2026)</h2>
+
 <label>Gross Monthly Income (R)</label>
 <input type="number" id="tax_income" placeholder="25000">
+
 <label>Age Bracket</label>
 <select id="tax_age">
 <option value="primary">Under 65</option>
 <option value="secondary">65 - 74</option>
 <option value="tertiary">75 and older</option>
 </select>
+
+<div class="checkbox-group">
+<label>Paid over 13 months? (Bonus)</label>
+<input type="checkbox" id="tax_13th">
+</div>
+
+<h3>Deductions</h3>
+<div class="checkbox-group">
+<label>Deduct UIF? (1% capped)</label>
+<input type="checkbox" id="tax_uif" checked>
+</div>
+
+<label>Provident/Pension Fund (Your Contribution %)</label>
+<input type="number" id="tax_pension_perc" placeholder="e.g. 7" value="0">
+
+<h3>Medical Aid Credits</h3>
+<div class="checkbox-group">
+<label>Do you pay Medical Aid?</label>
+<input type="checkbox" id="tax_medical_active" onchange="toggleMedical()">
+</div>
+<div id="medical_inputs" style="display:none;">
+<label>Total Members (Main + Dependents)</label>
+<input type="number" id="tax_med_members" value="1">
+</div>
+
+<h3>Extras</h3>
+<label>Voluntary Extra Tax (R)</label>
+<input type="number" id="tax_extra" value="0">
+
 <button class="btn-calc" onclick="calcTax()">Calculate Take Home</button>
 
 <div id="res-tax" class="result-box">
 <div class="res-row"><span>Gross Income:</span> <span class="res-val" id="rt_gross">R0</span></div>
-<div class="res-row" style="color:#ef4444;"><span>Estimated Tax (PAYE):</span> <span class="res-val" id="rt_paye">R0</span></div>
-<div class="res-row" style="color:#ef4444;"><span>UIF (1%):</span> <span class="res-val" id="rt_uif">R0</span></div>
+<div class="res-row"><span>Taxable Income:</span> <span class="res-val" id="rt_taxable">R0</span></div>
+<div class="res-row" style="color:#ef4444;"><span>PAYE (Tax):</span> <span class="res-val" id="rt_paye">R0</span></div>
+<div class="res-row" style="color:#ef4444;"><span>UIF:</span> <span class="res-val" id="rt_uif">R0</span></div>
+<div class="res-row" style="color:#ef4444;"><span>Pension (Deducted):</span> <span class="res-val" id="rt_pension">R0</span></div>
+<div class="res-row" style="color:var(--accent);"><span>Medical Tax Credit:</span> <span class="res-val" id="rt_med_credit">+R0</span></div>
 <div class="res-row" style="margin-top:15px; border-top:1px solid var(--border); padding-top:10px;">
 <span style="font-weight:bold;">Net Pay (Take Home):</span>
 </div>
@@ -100,6 +142,10 @@ input:focus { border-color: var(--primary); outline: none; }
 <input type="number" id="car_price" placeholder="300000">
 <label>Deposit (Optional)</label>
 <input type="number" id="car_deposit" value="0">
+
+<label>Balloon Payment / Residual (%)</label>
+<input type="number" id="car_balloon_perc" placeholder="e.g. 30" value="0">
+
 <label>Interest Rate (%)</label>
 <input type="number" id="car_rate" value="11.75">
 <label>Payment Period</label>
@@ -107,11 +153,13 @@ input:focus { border-color: var(--primary); outline: none; }
 <option value="60">60 Months (5 Years)</option>
 <option value="72">72 Months (6 Years)</option>
 <option value="48">48 Months (4 Years)</option>
+<option value="96">96 Months (8 Years)</option>
 </select>
 <button class="btn-calc" onclick="calcCar()">Calculate Installment</button>
 
 <div id="res-car" class="result-box">
 <div class="res-row"><span>Loan Amount:</span> <span class="res-val" id="rc_loan">R0</span></div>
+<div class="res-row"><span>Balloon Amount (Owed at end):</span> <span class="res-val" id="rc_balloon_amt">R0</span></div>
 <div class="res-row"><span>Total Interest:</span> <span class="res-val" id="rc_interest">R0</span></div>
 <div class="res-total" id="rc_total">R0 /pm</div>
 </div>
@@ -165,14 +213,13 @@ input:focus { border-color: var(--primary); outline: none; }
 </div>
 
 <div class="footer">
-<p>Disclaimer: All calculations are estimates based on 2024/2025 SARS tables.<br>
-Consult a professional for financial advice.</p>
-<p>&copy; 2025 The SA Wallet</p>
+<p>Disclaimer: Estimates based on 2025/2026 SARS tables.<br>
+Medical credits and UIF caps are subject to change.</p>
+<p>&copy; 2026 The SA Wallet</p>
 </div>
 </div>
 
 <script>
-// FIXED TABS LOGIC
 function switchTab(id, btn) {
 document.querySelectorAll('.tool-section').forEach(el => el.classList.remove('active'));
 document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -180,61 +227,91 @@ document.getElementById(id).classList.add('active');
 btn.classList.add('active');
 }
 
-// FORMATTER
-const fmt = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
-
-// 1. TAX LOGIC (2025 Tables)
-function calcTax() {
-const monthly = parseFloat(document.getElementById('tax_income').value) || 0;
-const annual = monthly * 12;
-let tax = 0;
-
-// 2025 Brackets
-if (annual <= 237100) {
-tax = annual * 0.18;
-} else if (annual <= 370500) {
-tax = 42678 + (annual - 237100) * 0.26;
-} else if (annual <= 512800) {
-tax = 77362 + (annual - 370500) * 0.31;
-} else if (annual <= 673000) {
-tax = 121475 + (annual - 512800) * 0.36;
-} else if (annual <= 857900) {
-tax = 179147 + (annual - 673000) * 0.39;
-} else if (annual <= 1817000) {
-tax = 251258 + (annual - 857900) * 0.41;
-} else {
-tax = 644489 + (annual - 1817000) * 0.45;
+function toggleMedical() {
+const isActive = document.getElementById('tax_medical_active').checked;
+document.getElementById('medical_inputs').style.display = isActive ? 'block' : 'none';
 }
 
-// Rebates
+const fmt = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
+
+// 1. TAX LOGIC (2026 SARS TABLES)
+function calcTax() {
+const monthlyGross = parseFloat(document.getElementById('tax_income').value) || 0;
+const use13th = document.getElementById('tax_13th').checked;
+const annualGross = use13th ? monthlyGross * 13 : monthlyGross * 12;
+
+const pensionPerc = parseFloat(document.getElementById('tax_pension_perc').value) || 0;
+const pensionDedAnnual = annualGross * (pensionPerc / 100);
+const taxableIncome = Math.max(0, annualGross - pensionDedAnnual);
+
+let tax = 0;
+// 2026 SARS Brackets
+if (taxableIncome <= 237100) { tax = taxableIncome * 0.18; }
+else if (taxableIncome <= 370500) { tax = 42678 + (taxableIncome - 237100) * 0.26; }
+else if (taxableIncome <= 512800) { tax = 77362 + (taxableIncome - 370500) * 0.31; }
+else if (taxableIncome <= 673000) { tax = 121475 + (taxableIncome - 512800) * 0.36; }
+else if (taxableIncome <= 857900) { tax = 179147 + (taxableIncome - 673000) * 0.39; }
+else if (taxableIncome <= 1817000) { tax = 251258 + (taxableIncome - 857900) * 0.41; }
+else { tax = 644489 + (taxableIncome - 1817000) * 0.45; }
+
 const age = document.getElementById('tax_age').value;
-let rebate = 17235; // Primary
+let rebate = 17235;
 if (age === 'secondary') rebate += 9444;
 if (age === 'tertiary') rebate += (9444 + 3145);
-
 tax = Math.max(0, tax - rebate);
-const uif = Math.min(monthly * 0.01, 177.12);
-const monthlyTax = tax / 12;
 
-document.getElementById('rt_gross').innerText = fmt.format(monthly);
+let medCreditAnnual = 0;
+if (document.getElementById('tax_medical_active').checked) {
+const members = parseFloat(document.getElementById('tax_med_members').value) || 1;
+let monthlyCredit = 0;
+if (members >= 1) monthlyCredit += 364;
+if (members >= 2) monthlyCredit += 364;
+if (members > 2) monthlyCredit += (members - 2) * 246;
+medCreditAnnual = monthlyCredit * 12;
+}
+
+tax = Math.max(0, tax - medCreditAnnual);
+
+let uifMonthly = 0;
+if (document.getElementById('tax_uif').checked) {
+uifMonthly = Math.min(monthlyGross * 0.01, 177.12);
+}
+
+const extraTax = parseFloat(document.getElementById('tax_extra').value) || 0;
+const annualTax = tax + (extraTax * 12);
+const monthlyTax = annualTax / 12;
+const monthlyPension = pensionDedAnnual / 12;
+const netPay = monthlyGross - monthlyTax - uifMonthly - monthlyPension;
+
+document.getElementById('rt_gross').innerText = fmt.format(monthlyGross);
+document.getElementById('rt_taxable').innerText = fmt.format(taxableIncome / 12) + " /pm";
 document.getElementById('rt_paye').innerText = fmt.format(monthlyTax);
-document.getElementById('rt_uif').innerText = fmt.format(uif);
-document.getElementById('rt_net').innerText = fmt.format(monthly - monthlyTax - uif);
+document.getElementById('rt_uif').innerText = fmt.format(uifMonthly);
+document.getElementById('rt_pension').innerText = fmt.format(monthlyPension);
+document.getElementById('rt_med_credit').innerText = "+" + fmt.format(medCreditAnnual / 12);
+document.getElementById('rt_net').innerText = fmt.format(netPay);
 document.getElementById('res-tax').style.display = 'block';
 }
 
-// 2. VEHICLE LOGIC
+// 2. VEHICLE LOGIC (WITH BALLOON)
 function calcCar() {
-const P = (parseFloat(document.getElementById('car_price').value) || 0) - (parseFloat(document.getElementById('car_deposit').value) || 0);
+const price = parseFloat(document.getElementById('car_price').value) || 0;
+const deposit = parseFloat(document.getElementById('car_deposit').value) || 0;
+const balloonPerc = parseFloat(document.getElementById('car_balloon_perc').value) || 0;
+const principal = price - deposit;
+const balloonAmount = price * (balloonPerc / 100);
 const r = (parseFloat(document.getElementById('car_rate').value) || 0) / 100 / 12;
 const n = parseFloat(document.getElementById('car_months').value);
+const loanPortion = principal - balloonAmount;
+const paymentLoan = (loanPortion * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+const paymentBalloon = balloonAmount * r;
+const totalMonthly = paymentLoan + paymentBalloon;
+const totalInterest = (totalMonthly * n) + balloonAmount - principal;
 
-const monthly = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-const total = monthly * n;
-
-document.getElementById('rc_loan').innerText = fmt.format(P);
-document.getElementById('rc_interest').innerText = fmt.format(total - P);
-document.getElementById('rc_total').innerText = fmt.format(monthly) + " /pm";
+document.getElementById('rc_loan').innerText = fmt.format(principal);
+document.getElementById('rc_balloon_amt').innerText = fmt.format(balloonAmount);
+document.getElementById('rc_interest').innerText = fmt.format(totalInterest);
+document.getElementById('rc_total').innerText = fmt.format(totalMonthly) + " /pm";
 document.getElementById('res-car').style.display = 'block';
 }
 
@@ -243,17 +320,15 @@ function calcBond() {
 const P = (parseFloat(document.getElementById('bond_price').value) || 0) - (parseFloat(document.getElementById('bond_deposit').value) || 0);
 const r = (parseFloat(document.getElementById('bond_rate').value) || 0) / 100 / 12;
 const n = (parseFloat(document.getElementById('bond_years').value) || 0) * 12;
-
 const monthly = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 const total = monthly * n;
-
 document.getElementById('rb_loan').innerText = fmt.format(P);
 document.getElementById('rb_total_cost').innerText = fmt.format(total);
 document.getElementById('rb_monthly').innerText = fmt.format(monthly) + " /pm";
 document.getElementById('res-bond').style.display = 'block';
 }
 
-// 4. SAVINGS LOGIC (Safe Mode)
+// 4. SAVINGS LOGIC (With Safety Check)
 function calcSave() {
 const P = parseFloat(document.getElementById('save_start').value) || 0;
 const PMT = parseFloat(document.getElementById('save_monthly').value) || 0;
@@ -261,21 +336,16 @@ const r = (parseFloat(document.getElementById('save_rate').value) || 0) / 100 / 
 const n = (parseFloat(document.getElementById('save_years').value) || 0) * 12;
 
 let futureValue;
-if (r === 0) {
-futureValue = P + (PMT * n);
-} else {
-futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r;
-}
+if (r === 0) { futureValue = P + (PMT * n); }
+else { futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r; }
 
 const totalContrib = P + (PMT * n);
-
 document.getElementById('rs_contrib').innerText = fmt.format(totalContrib);
 document.getElementById('rs_interest').innerText = fmt.format(futureValue - totalContrib);
 document.getElementById('rs_final').innerText = fmt.format(futureValue);
 document.getElementById('res-save').style.display = 'block';
 }
 
-// THEME LOGIC
 function toggleTheme() {
 const body = document.body;
 const isDark = body.getAttribute('data-theme') === 'dark';
