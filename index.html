@@ -16,7 +16,7 @@
 <meta name="theme-color" content="#1a202c">
 
 <style>
-:root { --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --primary: #2563eb; --accent: #10b981; --border: #e5e7eb; }
+:root { --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --primary: #2563eb; --accent: #10b981; --border: #e5e7eb; --danger: #ef4444; }
 [data-theme="dark"] { --bg: #111827; --card: #1f2937; --text: #f9fafb; --primary: #60a5fa; --accent: #34d399; --border: #374151; }
 
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; transition: 0.3s; }
@@ -47,8 +47,13 @@ input:focus { border-color: var(--primary); outline: none; }
 .checkbox-group label { margin: 0; cursor: pointer; }
 .checkbox-group input { width: auto; margin: 0; }
 
-.btn-calc { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+/* Button Group for Calc & Reset */
+.btn-group { display: flex; gap: 10px; margin-top: 10px; }
+.btn-calc { flex: 2; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; }
 .btn-calc:active { opacity: 0.9; transform: scale(0.98); }
+
+.btn-reset { flex: 1; padding: 16px; background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.btn-reset:active { background: var(--bg); }
 
 /* Results Box */
 .result-box { margin-top: 20px; padding-top: 20px; border-top: 2px dashed var(--border); display: none; }
@@ -134,13 +139,16 @@ padding-top: 20px;
 <input type="number" id="tax_med_members" value="1">
 </div>
 
-<button class="btn-calc" onclick="calcTax()">Estimate Take Home</button>
+<div class="btn-group">
+<button class="btn-reset" onclick="resetTax()">Reset</button>
+<button class="btn-calc" onclick="calcTax()">Estimate</button>
+</div>
 
 <div id="res-tax" class="result-box">
 <div class="res-row"><span>Gross Income (Annual):</span> <span class="res-val" id="rt_gross">R0</span></div>
 <div class="res-row"><span>Taxable Income:</span> <span class="res-val" id="rt_taxable">R0</span></div>
 <div class="res-row" style="color:#ef4444;"><span>Annual Tax (PAYE):</span> <span class="res-val" id="rt_annual_tax">R0</span></div>
-<div class="res-row" style="color:#ef4444;"><span>Annual Deductions:</span> <span class="res-val" id="rt_annual_deduct">R0</span></div>
+<div class="res-row" style="color:#ef4444;"><span>Deductions (Excl. Tax):</span> <span class="res-val" id="rt_annual_deduct">R0</span></div>
 <div class="res-row" style="margin-top:15px; border-top:1px solid var(--border); padding-top:10px;">
 <span style="font-weight:bold;">Monthly Take Home:</span>
 </div>
@@ -170,7 +178,11 @@ padding-top: 20px;
 <option value="48">48 Months (4 Years)</option>
 <option value="96">96 Months (8 Years)</option>
 </select>
-<button class="btn-calc" onclick="calcCar()">Estimate Installment</button>
+
+<div class="btn-group">
+<button class="btn-reset" onclick="resetCar()">Reset</button>
+<button class="btn-calc" onclick="calcCar()">Estimate</button>
+</div>
 
 <div id="res-car" class="result-box">
 <div class="res-row"><span>Loan Amount:</span> <span class="res-val" id="rc_loan">R0</span></div>
@@ -196,7 +208,11 @@ padding-top: 20px;
 <option value="30">30 Years</option>
 <option value="15">15 Years</option>
 </select>
-<button class="btn-calc" onclick="calcBond()">Estimate Repayment</button>
+
+<div class="btn-group">
+<button class="btn-reset" onclick="resetBond()">Reset</button>
+<button class="btn-calc" onclick="calcBond()">Estimate</button>
+</div>
 
 <div id="res-bond" class="result-box">
 <div class="res-row"><span>Loan Amount:</span> <span class="res-val" id="rb_loan">R0</span></div>
@@ -217,7 +233,11 @@ padding-top: 20px;
 <input type="number" id="save_rate" value="10">
 <label>Years</label>
 <input type="number" id="save_years" value="10">
-<button class="btn-calc" onclick="calcSave()">Project Wealth</button>
+
+<div class="btn-group">
+<button class="btn-reset" onclick="resetSave()">Reset</button>
+<button class="btn-calc" onclick="calcSave()">Project</button>
+</div>
 
 <div id="res-save" class="result-box">
 <div class="res-row"><span>Total Contributed:</span> <span class="res-val" id="rs_contrib">R0</span></div>
@@ -251,21 +271,58 @@ document.getElementById('medical_inputs').style.display = isActive ? 'block' : '
 
 const fmt = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
 
+// --- RESET FUNCTIONS ---
+function resetTax() {
+document.getElementById('tax_income').value = '';
+document.getElementById('tax_period').value = 'monthly';
+document.getElementById('tax_age').value = 'primary';
+document.getElementById('tax_13th').checked = false;
+document.getElementById('tax_uif').checked = true;
+document.getElementById('tax_pension_perc').value = 0;
+document.getElementById('tax_medical_active').checked = false;
+document.getElementById('tax_med_members').value = 1;
+document.getElementById('medical_inputs').style.display = 'none';
+document.getElementById('res-tax').style.display = 'none';
+}
+
+function resetCar() {
+document.getElementById('car_price').value = '';
+document.getElementById('car_deposit').value = 0;
+document.getElementById('car_balloon_perc').value = 0;
+document.getElementById('car_rate').value = 11.75; // Default SA Rate
+document.getElementById('car_months').value = 60;
+document.getElementById('res-car').style.display = 'none';
+}
+
+function resetBond() {
+document.getElementById('bond_price').value = '';
+document.getElementById('bond_deposit').value = 0;
+document.getElementById('bond_rate').value = 11.75;
+document.getElementById('bond_years').value = 20;
+document.getElementById('res-bond').style.display = 'none';
+}
+
+function resetSave() {
+document.getElementById('save_start').value = 1000;
+document.getElementById('save_monthly').value = 500;
+document.getElementById('save_rate').value = 10;
+document.getElementById('save_years').value = 10;
+document.getElementById('res-save').style.display = 'none';
+}
+
+// --- CALCULATION LOGIC ---
+
 // 1. TAX LOGIC (2026 SARS TABLES)
 function calcTax() {
 const amount = parseFloat(document.getElementById('tax_income').value) || 0;
 const period = document.getElementById('tax_period').value;
 const use13th = document.getElementById('tax_13th').checked;
-
-// Divider logic: If 13th cheque is ticked, we divide by 13 to get monthly cash flow
 const divisor = use13th ? 13 : 12;
 
 let annualGross = 0;
 if (period === 'annual') {
 annualGross = amount;
 } else {
-// Monthly input means "Regular Monthly Pay"
-// If they ticked 13th cheque, we assume the input is x13
 annualGross = use13th ? amount * 13 : amount * 12;
 }
 
@@ -303,23 +360,21 @@ tax = Math.max(0, tax - medCreditAnnual);
 
 let uifAnnual = 0;
 if (document.getElementById('tax_uif').checked) {
-// UIF capped at 177.12 per month, so approx 2125.44 annual
 const monthlyGross = annualGross / 12;
 const uifMonthly = Math.min(monthlyGross * 0.01, 177.12);
-uifAnnual = uifMonthly * 12; // Standardize to annual for calc
+uifAnnual = uifMonthly * 12;
 }
 
 const annualNet = annualGross - tax - uifAnnual - pensionDedAnnual;
-const monthlyNet = annualNet / divisor; // This is the magic fix
+const monthlyNet = annualNet / divisor;
 
 document.getElementById('rt_gross').innerText = fmt.format(annualGross);
 document.getElementById('rt_taxable').innerText = fmt.format(taxableIncome);
 document.getElementById('rt_annual_tax').innerText = fmt.format(tax);
-document.getElementById('rt_annual_deduct').innerText = fmt.format(uifAnnual + pensionDedAnnual + tax);
-
+// FIX: Removed tax from "Deductions" so it's not double-counted
+document.getElementById('rt_annual_deduct').innerText = fmt.format(uifAnnual + pensionDedAnnual);
 document.getElementById('rt_net').innerText = fmt.format(monthlyNet);
 
-// Dynamic Note
 const noteText = use13th ?
 "Note: Monthly pay is calculated as (Annual Net / 13) because you selected a 13th cheque." :
 "Note: Monthly pay is calculated as (Annual Net / 12).";
@@ -328,7 +383,7 @@ document.getElementById('pay_note').innerText = noteText;
 document.getElementById('res-tax').style.display = 'block';
 }
 
-// 2. VEHICLE LOGIC (WITH BALLOON)
+// 2. VEHICLE LOGIC
 function calcCar() {
 const price = parseFloat(document.getElementById('car_price').value) || 0;
 const deposit = parseFloat(document.getElementById('car_deposit').value) || 0;
@@ -363,7 +418,7 @@ document.getElementById('rb_monthly').innerText = fmt.format(monthly) + " /pm";
 document.getElementById('res-bond').style.display = 'block';
 }
 
-// 4. SAVINGS LOGIC (SAFE MODE)
+// 4. SAVINGS LOGIC
 function calcSave() {
 const P = parseFloat(document.getElementById('save_start').value) || 0;
 const PMT = parseFloat(document.getElementById('save_monthly').value) || 0;
@@ -371,8 +426,13 @@ const r = (parseFloat(document.getElementById('save_rate').value) || 0) / 100 / 
 const n = (parseFloat(document.getElementById('save_years').value) || 0) * 12;
 
 let futureValue;
-if (r === 0) { futureValue = P + (PMT * n); }
-else { futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r; }
+if (r === 0) {
+// Safety Check: Avoid crash if interest is 0%
+futureValue = P + (PMT * n);
+}
+else {
+futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r;
+}
 
 const totalContrib = P + (PMT * n);
 document.getElementById('rs_contrib').innerText = fmt.format(totalContrib);
