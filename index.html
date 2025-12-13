@@ -41,6 +41,8 @@ h2 { margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 
 h3 { font-size: 0.95rem; text-transform: uppercase; color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
 
 label { display: block; font-weight: 600; font-size: 0.85em; margin-bottom: 8px; color: var(--text); opacity: 0.9; }
+
+/* UPDATED INPUT STYLE FOR TEXT MODE */
 input, select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; background: var(--bg); color: var(--text); box-sizing: border-box; margin-bottom: 15px; }
 input:focus { border-color: var(--primary); outline: none; }
 
@@ -108,7 +110,7 @@ padding-top: 20px;
 </select>
 
 <label>Gross Income (R)</label>
-<input type="number" id="tax_income" placeholder="25000" min="0">
+<input type="text" inputmode="decimal" id="tax_income" placeholder="e.g. 25 000" onkeyup="formatCurrency(this)">
 
 <label>Age Bracket</label>
 <select id="tax_age">
@@ -155,7 +157,7 @@ padding-top: 20px;
 <span style="font-weight:bold;">Monthly Take Home:</span>
 </div>
 <div class="res-total" id="rt_net">R0.00</div>
-<div class="note" id="pay_note">Note: Monthly values shown are based on your selected frequency.</div>
+<div class="note" id="pay_note">Note: Values shown are based on your selected frequency.</div>
 </div>
 </div>
 </div>
@@ -164,9 +166,10 @@ padding-top: 20px;
 <div class="card">
 <h2>🚗 Vehicle Finance</h2>
 <label>Vehicle Price (R)</label>
-<input type="number" id="car_price" placeholder="300000" min="0">
+<input type="text" inputmode="decimal" id="car_price" placeholder="e.g. 300 000" onkeyup="formatCurrency(this)">
+
 <label>Deposit (Optional)</label>
-<input type="number" id="car_deposit" value="0" min="0">
+<input type="text" inputmode="decimal" id="car_deposit" value="0" onkeyup="formatCurrency(this)">
 
 <label>Balloon Payment / Residual (%)</label>
 <input type="number" id="car_balloon_perc" placeholder="e.g. 30" value="0" min="0">
@@ -199,9 +202,11 @@ padding-top: 20px;
 <div class="card">
 <h2>🏠 Bond Repayment</h2>
 <label>Property Price (R)</label>
-<input type="number" id="bond_price" placeholder="1200000" min="0">
+<input type="text" inputmode="decimal" id="bond_price" placeholder="e.g. 1 200 000" onkeyup="formatCurrency(this)">
+
 <label>Deposit (Optional)</label>
-<input type="number" id="bond_deposit" value="0" min="0">
+<input type="text" inputmode="decimal" id="bond_deposit" value="0" onkeyup="formatCurrency(this)">
+
 <label>Interest Rate (%)</label>
 <input type="number" id="bond_rate" value="11.75" min="0">
 <label>Term (Years)</label>
@@ -228,9 +233,11 @@ padding-top: 20px;
 <div class="card">
 <h2>📈 Savings Planner</h2>
 <label>Starting Amount (R)</label>
-<input type="number" id="save_start" value="1000" min="0">
+<input type="text" inputmode="decimal" id="save_start" value="1 000" onkeyup="formatCurrency(this)">
+
 <label>Monthly Contribution (R)</label>
-<input type="number" id="save_monthly" value="500" min="0">
+<input type="text" inputmode="decimal" id="save_monthly" value="500" onkeyup="formatCurrency(this)">
+
 <label>Annual Return (%)</label>
 <input type="number" id="save_rate" value="10" min="0">
 <label>Years</label>
@@ -265,10 +272,33 @@ document.getElementById(id).classList.add('active');
 btn.classList.add('active');
 }
 
-// Toggle Medical inputs
 function toggleMedical() {
 const isActive = document.getElementById('tax_medical_active').checked;
 document.getElementById('medical_inputs').style.display = isActive ? 'block' : 'none';
+}
+
+function toggleBonusOption() {
+const bonusGroup = document.getElementById('bonus_group');
+bonusGroup.style.display = 'flex';
+}
+
+// --- NEW: FORMATTING ENGINE ---
+// Adds spaces (1 000 000) as user types
+function formatCurrency(input) {
+// Remove existing spaces and non-numeric chars
+let value = input.value.replace(/[^0-9.]/g, '');
+// Add spaces every 3 digits (integer part only)
+let parts = value.split('.');
+parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+input.value = parts.join('.');
+}
+
+// --- NEW: CLEANING HELPER ---
+// Strips spaces so we can do math
+function getVal(id) {
+const raw = document.getElementById(id).value;
+const clean = raw.replace(/ /g, ''); // Remove spaces
+return Math.max(0, parseFloat(clean) || 0);
 }
 
 const fmt = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
@@ -289,35 +319,33 @@ document.getElementById('res-tax').style.display = 'none';
 
 function resetCar() {
 document.getElementById('car_price').value = '';
-document.getElementById('car_deposit').value = 0;
+document.getElementById('car_deposit').value = '0';
 document.getElementById('car_balloon_perc').value = 0;
-document.getElementById('car_rate').value = 11.75; // Default SA Rate
+document.getElementById('car_rate').value = 11.75;
 document.getElementById('car_months').value = 60;
 document.getElementById('res-car').style.display = 'none';
 }
 
 function resetBond() {
 document.getElementById('bond_price').value = '';
-document.getElementById('bond_deposit').value = 0;
+document.getElementById('bond_deposit').value = '0';
 document.getElementById('bond_rate').value = 11.75;
 document.getElementById('bond_years').value = 20;
 document.getElementById('res-bond').style.display = 'none';
 }
 
 function resetSave() {
-document.getElementById('save_start').value = 1000;
-document.getElementById('save_monthly').value = 500;
+document.getElementById('save_start').value = '1 000';
+document.getElementById('save_monthly').value = '500';
 document.getElementById('save_rate').value = 10;
 document.getElementById('save_years').value = 10;
 document.getElementById('res-save').style.display = 'none';
 }
 
-// --- CALCULATION LOGIC ---
+// --- CALCULATION LOGIC (Using getVal for spaced inputs) ---
 
-// 1. TAX LOGIC (2026 SARS TABLES)
 function calcTax() {
-// Prevent negative inputs
-const amount = Math.max(0, parseFloat(document.getElementById('tax_income').value) || 0);
+const amount = getVal('tax_income'); // Uses helper
 const period = document.getElementById('tax_period').value;
 const use13th = document.getElementById('tax_13th').checked;
 const divisor = use13th ? 13 : 12;
@@ -329,7 +357,7 @@ annualGross = amount;
 annualGross = use13th ? amount * 13 : amount * 12;
 }
 
-const pensionPerc = Math.max(0, parseFloat(document.getElementById('tax_pension_perc').value) || 0);
+const pensionPerc = getVal('tax_pension_perc');
 const pensionDedAnnual = annualGross * (pensionPerc / 100);
 const taxableIncome = Math.max(0, annualGross - pensionDedAnnual);
 
@@ -351,7 +379,7 @@ tax = Math.max(0, tax - rebate);
 
 let medCreditAnnual = 0;
 if (document.getElementById('tax_medical_active').checked) {
-const members = Math.max(1, parseFloat(document.getElementById('tax_med_members').value) || 1);
+const members = getVal('tax_med_members');
 let monthlyCredit = 0;
 if (members >= 1) monthlyCredit += 364;
 if (members >= 2) monthlyCredit += 364;
@@ -374,10 +402,7 @@ const monthlyNet = annualNet / divisor;
 document.getElementById('rt_gross').innerText = fmt.format(annualGross);
 document.getElementById('rt_taxable').innerText = fmt.format(taxableIncome);
 document.getElementById('rt_annual_tax').innerText = fmt.format(tax);
-
-// FIXED: Removed TAX from "Deductions" to prevent double-counting confusion
 document.getElementById('rt_annual_deduct').innerText = fmt.format(uifAnnual + pensionDedAnnual);
-
 document.getElementById('rt_net').innerText = fmt.format(monthlyNet);
 
 const noteText = use13th ?
@@ -388,16 +413,14 @@ document.getElementById('pay_note').innerText = noteText;
 document.getElementById('res-tax').style.display = 'block';
 }
 
-// 2. VEHICLE LOGIC
 function calcCar() {
-// Prevent negative inputs
-const price = Math.max(0, parseFloat(document.getElementById('car_price').value) || 0);
-const deposit = Math.max(0, parseFloat(document.getElementById('car_deposit').value) || 0);
-const balloonPerc = Math.max(0, parseFloat(document.getElementById('car_balloon_perc').value) || 0);
+const price = getVal('car_price');
+const deposit = getVal('car_deposit');
+const balloonPerc = getVal('car_balloon_perc');
 
 const principal = Math.max(0, price - deposit);
 const balloonAmount = price * (balloonPerc / 100);
-const r = (Math.max(0, parseFloat(document.getElementById('car_rate').value) || 0)) / 100 / 12;
+const r = (getVal('car_rate')) / 100 / 12;
 const n = parseFloat(document.getElementById('car_months').value);
 
 const loanPortion = principal - balloonAmount;
@@ -413,12 +436,11 @@ document.getElementById('rc_total').innerText = fmt.format(totalMonthly) + " /pm
 document.getElementById('res-car').style.display = 'block';
 }
 
-// 3. BOND LOGIC
 function calcBond() {
-const price = Math.max(0, parseFloat(document.getElementById('bond_price').value) || 0);
-const deposit = Math.max(0, parseFloat(document.getElementById('bond_deposit').value) || 0);
+const price = getVal('bond_price');
+const deposit = getVal('bond_deposit');
 const P = Math.max(0, price - deposit);
-const r = (Math.max(0, parseFloat(document.getElementById('bond_rate').value) || 0)) / 100 / 12;
+const r = (getVal('bond_rate')) / 100 / 12;
 const n = (parseFloat(document.getElementById('bond_years').value) || 0) * 12;
 
 const monthly = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
@@ -430,13 +452,11 @@ document.getElementById('rb_monthly').innerText = fmt.format(monthly) + " /pm";
 document.getElementById('res-bond').style.display = 'block';
 }
 
-// 4. SAVINGS LOGIC
 function calcSave() {
-const P = Math.max(0, parseFloat(document.getElementById('save_start').value) || 0);
-const PMT = Math.max(0, parseFloat(document.getElementById('save_monthly').value) || 0);
-const rateInput = Math.max(0, parseFloat(document.getElementById('save_rate').value) || 0);
-const r = rateInput / 100 / 12;
-const n = (Math.max(0, parseFloat(document.getElementById('save_years').value) || 0)) * 12;
+const P = getVal('save_start');
+const PMT = getVal('save_monthly');
+const r = getVal('save_rate') / 100 / 12;
+const n = getVal('save_years') * 12;
 
 let futureValue;
 if (r === 0) {
