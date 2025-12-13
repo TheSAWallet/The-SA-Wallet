@@ -4,10 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>The SA Wallet | Tax 2026, Bond & Vehicle Calculator</title>
-<meta name="description" content="The SA Wallet: Free South African financial tools. Calculate 2026 SARS Tax, Vehicle Finance with Balloon, Bond Repayments, and Savings.">
+<title>The SA Wallet | Tax 2026, Bond & Vehicle Estimator</title>
+<meta name="description" content="The SA Wallet: Free South African financial tools. Estimate 2026 SARS Tax, Vehicle Finance, Bond Repayments, and Savings.">
 <meta name="author" content="The SA Wallet">
 <meta name="robots" content="index, follow">
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="SA Wallet">
@@ -53,12 +55,24 @@ input:focus { border-color: var(--primary); outline: none; }
 .res-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.95rem; }
 .res-val { font-weight: bold; }
 .res-total { font-size: 1.3rem; color: var(--accent); font-weight: 800; margin-top: 10px; text-align: right; }
+.note { font-size: 0.8rem; color: var(--text); opacity: 0.7; margin-top: 15px; font-style: italic; }
 
 /* Dark Mode Toggle */
 .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .theme-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
 
-.footer { font-size: 0.75rem; color: var(--text); opacity: 0.6; text-align: center; margin-top: 30px; padding-bottom: 20px; }
+/* Legal Footer */
+.footer {
+font-size: 0.7rem;
+color: var(--text);
+opacity: 0.7;
+text-align: center;
+margin-top: 40px;
+padding-bottom: 40px;
+line-height: 1.6;
+border-top: 1px solid var(--border);
+padding-top: 20px;
+}
 </style>
 </head>
 <body>
@@ -80,7 +94,13 @@ input:focus { border-color: var(--primary); outline: none; }
 <div class="card">
 <h2>💸 Tax Estimator (2026)</h2>
 
-<label>Gross Monthly Income (R)</label>
+<label>Income Frequency</label>
+<select id="tax_period" onchange="toggleBonusOption()">
+<option value="monthly">Monthly</option>
+<option value="annual">Annual (Yearly Total)</option>
+</select>
+
+<label>Gross Income (R)</label>
 <input type="number" id="tax_income" placeholder="25000">
 
 <label>Age Bracket</label>
@@ -90,7 +110,7 @@ input:focus { border-color: var(--primary); outline: none; }
 <option value="tertiary">75 and older</option>
 </select>
 
-<div class="checkbox-group">
+<div class="checkbox-group" id="bonus_group">
 <label>Paid over 13 months? (Bonus)</label>
 <input type="checkbox" id="tax_13th">
 </div>
@@ -114,16 +134,12 @@ input:focus { border-color: var(--primary); outline: none; }
 <input type="number" id="tax_med_members" value="1">
 </div>
 
-<h3>Extras</h3>
-<label>Voluntary Extra Tax (R)</label>
-<input type="number" id="tax_extra" value="0">
-
-<button class="btn-calc" onclick="calcTax()">Calculate Take Home</button>
+<button class="btn-calc" onclick="calcTax()">Estimate Take Home</button>
 
 <div id="res-tax" class="result-box">
-<div class="res-row"><span>Gross Income:</span> <span class="res-val" id="rt_gross">R0</span></div>
-<div class="res-row"><span>Taxable Income:</span> <span class="res-val" id="rt_taxable">R0</span></div>
-<div class="res-row" style="color:#ef4444;"><span>PAYE (Tax):</span> <span class="res-val" id="rt_paye">R0</span></div>
+<div class="res-row"><span>Gross Income (Monthly Avg):</span> <span class="res-val" id="rt_gross">R0</span></div>
+<div class="res-row"><span>Taxable Income (Annual):</span> <span class="res-val" id="rt_taxable">R0</span></div>
+<div class="res-row" style="color:#ef4444;"><span>PAYE (Monthly Tax):</span> <span class="res-val" id="rt_paye">R0</span></div>
 <div class="res-row" style="color:#ef4444;"><span>UIF:</span> <span class="res-val" id="rt_uif">R0</span></div>
 <div class="res-row" style="color:#ef4444;"><span>Pension (Deducted):</span> <span class="res-val" id="rt_pension">R0</span></div>
 <div class="res-row" style="color:var(--accent);"><span>Medical Tax Credit:</span> <span class="res-val" id="rt_med_credit">+R0</span></div>
@@ -131,6 +147,7 @@ input:focus { border-color: var(--primary); outline: none; }
 <span style="font-weight:bold;">Net Pay (Take Home):</span>
 </div>
 <div class="res-total" id="rt_net">R0.00</div>
+<div class="note">Note: Monthly values shown are averages when annual income or a 13th cheque is selected.</div>
 </div>
 </div>
 </div>
@@ -155,7 +172,7 @@ input:focus { border-color: var(--primary); outline: none; }
 <option value="48">48 Months (4 Years)</option>
 <option value="96">96 Months (8 Years)</option>
 </select>
-<button class="btn-calc" onclick="calcCar()">Calculate Installment</button>
+<button class="btn-calc" onclick="calcCar()">Estimate Installment</button>
 
 <div id="res-car" class="result-box">
 <div class="res-row"><span>Loan Amount:</span> <span class="res-val" id="rc_loan">R0</span></div>
@@ -181,7 +198,7 @@ input:focus { border-color: var(--primary); outline: none; }
 <option value="30">30 Years</option>
 <option value="15">15 Years</option>
 </select>
-<button class="btn-calc" onclick="calcBond()">Calculate Repayment</button>
+<button class="btn-calc" onclick="calcBond()">Estimate Repayment</button>
 
 <div id="res-bond" class="result-box">
 <div class="res-row"><span>Loan Amount:</span> <span class="res-val" id="rb_loan">R0</span></div>
@@ -213,8 +230,9 @@ input:focus { border-color: var(--primary); outline: none; }
 </div>
 
 <div class="footer">
-<p>Disclaimer: Estimates based on 2025/2026 SARS tables.<br>
-Medical credits and UIF caps are subject to change.</p>
+<p><strong>LEGAL DISCLAIMER:</strong> This tool is for educational purposes only. Calculations are estimates based on the 2025/2026 SARS Budget Speech.</p>
+<p><strong>Medical credits, UIF caps, and tax brackets are subject to change without notice.</strong></p>
+<p>The creators of this tool are <strong>not registered Financial Services Providers (FSP)</strong>. We accept no liability for any loss or damage resulting from the use of this tool. Please consult a certified tax practitioner or financial advisor before making any financial decisions.</p>
 <p>&copy; 2026 The SA Wallet</p>
 </div>
 </div>
@@ -227,18 +245,40 @@ document.getElementById(id).classList.add('active');
 btn.classList.add('active');
 }
 
+// Toggle Medical inputs
 function toggleMedical() {
 const isActive = document.getElementById('tax_medical_active').checked;
 document.getElementById('medical_inputs').style.display = isActive ? 'block' : 'none';
+}
+
+// Toggle Bonus Option based on frequency
+function toggleBonusOption() {
+const period = document.getElementById('tax_period').value;
+const bonusGroup = document.getElementById('bonus_group');
+if (period === 'annual') {
+bonusGroup.style.display = 'none';
+} else {
+bonusGroup.style.display = 'flex';
+}
 }
 
 const fmt = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
 
 // 1. TAX LOGIC (2026 SARS TABLES)
 function calcTax() {
-const monthlyGross = parseFloat(document.getElementById('tax_income').value) || 0;
+const amount = parseFloat(document.getElementById('tax_income').value) || 0;
+const period = document.getElementById('tax_period').value; // monthly or annual
+
+let annualGross = 0;
+
+// Determine Annual Gross based on frequency
+if (period === 'annual') {
+annualGross = amount;
+} else {
+// Monthly
 const use13th = document.getElementById('tax_13th').checked;
-const annualGross = use13th ? monthlyGross * 13 : monthlyGross * 12;
+annualGross = use13th ? amount * 13 : amount * 12;
+}
 
 const pensionPerc = parseFloat(document.getElementById('tax_pension_perc').value) || 0;
 const pensionDedAnnual = annualGross * (pensionPerc / 100);
@@ -274,17 +314,21 @@ tax = Math.max(0, tax - medCreditAnnual);
 
 let uifMonthly = 0;
 if (document.getElementById('tax_uif').checked) {
-uifMonthly = Math.min(monthlyGross * 0.01, 177.12);
+// UIF is calculated on monthly gross remuneration
+const monthlyBase = annualGross / 12;
+uifMonthly = Math.min(monthlyBase * 0.01, 177.12);
 }
 
-const extraTax = parseFloat(document.getElementById('tax_extra').value) || 0;
-const annualTax = tax + (extraTax * 12);
+const annualTax = tax;
 const monthlyTax = annualTax / 12;
 const monthlyPension = pensionDedAnnual / 12;
-const netPay = monthlyGross - monthlyTax - uifMonthly - monthlyPension;
 
-document.getElementById('rt_gross').innerText = fmt.format(monthlyGross);
-document.getElementById('rt_taxable').innerText = fmt.format(taxableIncome / 12) + " /pm";
+// Net Pay = (Annual Gross / 12) - Deductions
+const monthlyGrossAvg = annualGross / 12;
+const netPay = monthlyGrossAvg - monthlyTax - uifMonthly - monthlyPension;
+
+document.getElementById('rt_gross').innerText = fmt.format(monthlyGrossAvg);
+document.getElementById('rt_taxable').innerText = fmt.format(taxableIncome);
 document.getElementById('rt_paye').innerText = fmt.format(monthlyTax);
 document.getElementById('rt_uif').innerText = fmt.format(uifMonthly);
 document.getElementById('rt_pension').innerText = fmt.format(monthlyPension);
@@ -328,7 +372,7 @@ document.getElementById('rb_monthly').innerText = fmt.format(monthly) + " /pm";
 document.getElementById('res-bond').style.display = 'block';
 }
 
-// 4. SAVINGS LOGIC (With Safety Check)
+// 4. SAVINGS LOGIC (SAFE MODE)
 function calcSave() {
 const P = parseFloat(document.getElementById('save_start').value) || 0;
 const PMT = parseFloat(document.getElementById('save_monthly').value) || 0;
@@ -336,8 +380,13 @@ const r = (parseFloat(document.getElementById('save_rate').value) || 0) / 100 / 
 const n = (parseFloat(document.getElementById('save_years').value) || 0) * 12;
 
 let futureValue;
-if (r === 0) { futureValue = P + (PMT * n); }
-else { futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r; }
+if (r === 0) {
+// Safety check for 0% interest
+futureValue = P + (PMT * n);
+}
+else {
+futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r;
+}
 
 const totalContrib = P + (PMT * n);
 document.getElementById('rs_contrib').innerText = fmt.format(totalContrib);
