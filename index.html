@@ -2,272 +2,265 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Financial Freedom Planner</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-:root { --primary: #007bff; --success: #28a745; --bg: #f4f7f6; --card: #ffffff; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-/* Layout */
-.container { max-width: 600px; margin: 0 auto; background: var(--card); padding: 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-h2 { text-align: center; margin-top: 0; color: #2c3e50; }
+<title>Financial Freedom Planner | Wealth App</title>
+<meta name="description" content="Track your Net Worth, calculate FIRE (Financial Independence), and plan retirement. Free, secure, and installs on your phone.">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2c3e50">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2910/2910796.png">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+/* Light Theme (Default) */
+:root {
+--bg: #f4f6f8;
+--card: #ffffff;
+--text: #333333;
+--text-sub: #666666;
+--primary: #2c3e50;
+--accent: #007bff;
+--border: #e0e0e0;
+--input-bg: #ffffff;
+--ad-bg: #e9ecef;
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"] {
+--bg: #121212;
+--card: #1e1e1e;
+--text: #e0e0e0;
+--text-sub: #a0a0a0;
+--primary: #bb86fc;
+--accent: #3700b3; /* darker purple/blue */
+--border: #333333;
+--input-bg: #2c2c2c;
+--ad-bg: #252525;
+}
+
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; transition: 0.3s; }
+
+.main-wrapper { max-width: 600px; margin: 0 auto; padding: 20px; min-height: 100vh; }
+
+/* Header & Dark Toggle */
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.header h1 { margin: 0; font-size: 1.2rem; color: var(--text); }
+
+.theme-toggle { background: none; border: 1px solid var(--border); padding: 8px 12px; border-radius: 20px; cursor: pointer; color: var(--text); font-size: 14px; display: flex; align-items: center; gap: 5px; }
+.theme-toggle:hover { background: var(--border); }
+
+/* Cards */
+.card { background: var(--card); padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
 
 /* Inputs */
-.section-title { font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-.input-group { margin-bottom: 15px; }
-label { display: block; font-weight: 600; font-size: 0.9em; margin-bottom: 5px; color: #555; }
-input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.2s; }
-input:focus, select:focus { border-color: var(--primary); outline: none; }
+label { display: block; font-weight: 600; font-size: 0.85em; margin-bottom: 8px; color: var(--text-sub); }
+input, select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; background: var(--input-bg); color: var(--text); box-sizing: border-box; margin-bottom: 15px; }
+input:focus { border-color: var(--primary); outline: none; }
 
-/* Strategy Buttons */
-.strategy-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-.strat-btn { padding: 8px; font-size: 12px; background: #eef2f7; border: 1px solid #dce1e8; border-radius: 6px; cursor: pointer; color: #555; font-weight: 600; }
-.strat-btn:hover { background: #e2e6ea; }
-.strat-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+/* Buttons */
+.btn-main { width: 100%; padding: 16px; background: #007bff; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,123,255,0.3); transition: 0.2s; }
+.btn-main:active { transform: scale(0.98); }
 
-/* Inflation Toggle */
-.toggle-group { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
-.toggle-label { font-size: 0.9em; font-weight: normal; margin: 0; }
+/* Strategy Tags */
+.strategy-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+.strat-btn { padding: 10px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); cursor: pointer; font-size: 12px; }
+.strat-btn.active { background: #007bff; color: white; border-color: #007bff; }
 
-/* Action Buttons */
-.btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,123,255,0.2); transition: 0.2s; }
-.btn-main:hover { background: #0056b3; transform: translateY(-1px); }
-.btn-pdf { width: 100%; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer; font-size: 14px; }
+/* Results */
+#results-area { display: none; margin-top: 20px; animation: fadeIn 0.5s ease; }
+.highlight-box { text-align: center; padding: 20px; background: rgba(0,123,255,0.1); border-radius: 12px; margin-bottom: 20px; }
+.big-number { font-size: 2.2rem; font-weight: 800; color: #007bff; display: block; margin: 5px 0; }
+.chart-box { height: 300px; margin-top: 20px; }
 
-/* Results Area */
-#results-area { display: none; margin-top: 30px; border-top: 2px dashed #eee; padding-top: 20px; }
-.metric-card { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 10px; }
-.metric-title { font-size: 0.85em; color: #666; text-transform: uppercase; }
-.metric-value { font-size: 1.8em; font-weight: 800; color: var(--success); margin: 5px 0; }
-.metric-sub { font-size: 0.9em; color: #555; }
+/* Ads */
+.ad-slot { background: var(--ad-bg); border: 1px dashed var(--border); color: var(--text-sub); padding: 15px; text-align: center; margin: 30px 0; border-radius: 8px; font-size: 0.8rem; }
 
-/* Chart Container */
-.chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
-
-/* Disclaimer & Footer */
-.disclaimer { font-size: 11px; color: #aaa; text-align: center; margin-top: 30px; line-height: 1.5; border-top: 1px solid #eee; padding-top: 15px; }
-
-/* Print/PDF Styling */
-@media print {
-body { background: white; }
-.container { box-shadow: none; max-width: 100%; }
-.btn-main, .btn-pdf, .strategy-grid, select, .toggle-group { display: none !important; }
-input { border: none; padding: 0; font-weight: bold; }
-h2:after { content: " - Report"; }
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 </head>
 <body>
 
-<div class="container">
-<h2>📈 Wealth Planner Pro</h2>
+<div class="main-wrapper">
 
-<div class="input-group">
+<header class="header">
+<h1>📊 Wealth App</h1>
+<button class="theme-toggle" onclick="toggleTheme()">
+<span id="theme-icon">🌙</span> Mode
+</button>
+</header>
+
+<div class="card">
 <label>Currency</label>
-<select id="currency" onchange="updateCurrency()">
-<option value="USD">🇺🇸 Dollar ($)</option>
-<option value="ZAR" selected>🇿🇦 Rand (R)</option>
-<option value="EUR">🇪🇺 Euro (€)</option>
-<option value="GBP">🇬🇧 Pound (£)</option>
+<select id="currency" onchange="calculate()">
+<option value="ZAR">🇿🇦 South Africa (ZAR)</option>
+<option value="USD">🇺🇸 International (USD)</option>
+<option value="GBP">🇬🇧 UK (GBP)</option>
 </select>
-</div>
 
-<div class="section-title">Your Goals (FIRE)</div>
-<div class="input-group">
-<label>Monthly Expenses (Current)</label>
-<input type="number" id="expenses" placeholder="20000" value="20000">
-</div>
+<label>Current Net Worth / Savings</label>
+<input type="number" id="start" value="10000" oninput="saveData()">
 
-<div class="section-title">Investment Details</div>
+<label>Monthly Investment</label>
+<input type="number" id="monthly" value="2000" oninput="saveData()">
 
-<div class="input-group">
-<label>Current Savings</label>
-<input type="number" id="start" value="10000">
-</div>
-
-<div class="input-group">
-<label>Monthly Contribution</label>
-<input type="number" id="monthly" value="2000">
-</div>
-
-<div class="input-group">
-<label>Annual Return (%)</label>
+<label>Growth Rate (%)</label>
 <div class="strategy-grid">
-<button class="strat-btn" onclick="setRate(5, this)">Safe (5%)</button>
-<button class="strat-btn active" onclick="setRate(9, this)">Balanced (9%)</button>
-<button class="strat-btn" onclick="setRate(12, this)">Aggr. (12%)</button>
+<button class="strat-btn" onclick="setRate(6, this)">Safe (6%)</button>
+<button class="strat-btn active" onclick="setRate(10, this)">Market (10%)</button>
+<button class="strat-btn" onclick="setRate(15, this)">Aggr. (15%)</button>
 </div>
-<input type="number" id="rate" value="9">
-</div>
+<input type="number" id="rate" value="10" oninput="saveData()">
 
-<div class="input-group">
 <label>Years to Grow</label>
-<input type="number" id="years" value="20">
-</div>
+<input type="number" id="years" value="20" oninput="saveData()">
 
-<div class="toggle-group">
-<label class="toggle-label">Adjust for Inflation (Avg 4.5%)?</label>
-<input type="checkbox" id="inflation" style="width: auto;">
+<button class="btn-main" onclick="calculate()">Project Wealth</button>
 </div>
-
-<button class="btn-main" onclick="calculate()">Calculate Freedom</button>
 
 <div id="results-area">
-<div class="metric-card">
-<div class="metric-title">Projected Wealth</div>
-<div class="metric-value" id="final-wealth">0</div>
-<div class="metric-sub">after <span id="res-years">0</span> years</div>
+<div class="highlight-box">
+<span>Projected Wealth</span>
+<span class="big-number" id="final-wealth">0.00</span>
+<small id="subtitle">in 20 years</small>
 </div>
-
-<div class="metric-card" style="background: #e3f2fd;">
-<div class="metric-title">FIRE Number (Freedom Target)</div>
-<div class="metric-value" id="fire-number">0</div>
-<div class="metric-sub" id="fire-status">Calculating...</div>
-</div>
-
-<div class="chart-container">
+<div class="card chart-box">
 <canvas id="wealthChart"></canvas>
 </div>
-
-<button class="btn-pdf" onclick="window.print()">🖨️ Save as PDF / Print Report</button>
 </div>
 
-<p class="disclaimer">
-<strong>Disclaimer:</strong> This tool is for educational and simulation purposes only. It does not constitute financial advice. "FIRE" calculations are based on the 'Rule of 25'. Investment returns and inflation are unpredictable.
-</p>
+<div class="ad-slot">
+Advertisement Area<br>(Google AdSense goes here)
+</div>
+
+<div class="card" style="font-size: 0.9rem; color: var(--text-sub);">
+<h3>About this Tool</h3>
+<p>This progressive web app allows you to track compound interest and net worth goals. It saves your data locally on your device, so you never lose your progress.</p>
+<p><strong>Tip:</strong> Tap "Share" > "Add to Home Screen" to install this as an app on your phone.</p>
+</div>
+
+<footer style="text-align: center; font-size: 0.8rem; color: var(--text-sub); padding-bottom: 30px;">
+<p>Disclaimer: Educational purposes only. Not financial advice.</p>
+</footer>
+
 </div>
 
 <script>
+// 1. Dark Mode Logic
+function toggleTheme() {
+const body = document.body;
+const current = body.getAttribute('data-theme');
+const next = current === 'dark' ? 'light' : 'dark';
+body.setAttribute('data-theme', next);
+document.getElementById('theme-icon').innerText = next === 'dark' ? '☀️' : '🌙';
+localStorage.setItem('theme', next);
+}
+
+// 2. Auto-Save Logic (Local Storage)
+function saveData() {
+const inputs = ['start', 'monthly', 'rate', 'years', 'currency'];
+inputs.forEach(id => {
+localStorage.setItem(id, document.getElementById(id).value);
+});
+}
+
+function loadData() {
+const inputs = ['start', 'monthly', 'rate', 'years', 'currency'];
+inputs.forEach(id => {
+const val = localStorage.getItem(id);
+if (val) document.getElementById(id).value = val;
+});
+
+// Load Theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+document.body.setAttribute('data-theme', 'dark');
+document.getElementById('theme-icon').innerText = '☀️';
+}
+}
+
+// 3. Calculator Logic
 let myChart = null;
 
 function setRate(val, btn) {
 document.getElementById('rate').value = val;
-// Reset active class on buttons
 document.querySelectorAll('.strat-btn').forEach(b => b.classList.remove('active'));
 btn.classList.add('active');
+saveData(); // Save choice
 }
 
 function calculate() {
-// 1. Get Values
 const currency = document.getElementById('currency').value;
-const expenses = parseFloat(document.getElementById('expenses').value) || 0;
 const P = parseFloat(document.getElementById('start').value) || 0;
 const PMT = parseFloat(document.getElementById('monthly').value) || 0;
-let rate = parseFloat(document.getElementById('rate').value) || 0;
-const years = parseFloat(document.getElementById('years').value) || 0;
-const useInflation = document.getElementById('inflation').checked;
+const r = (parseFloat(document.getElementById('rate').value) || 0) / 100 / 12;
+const n = (parseFloat(document.getElementById('years').value) || 0) * 12;
 
-// 2. Adjust for Inflation (Fisher Equation approximation)
-// If inflation is on, we reduce the effective return rate
-if (useInflation) {
-rate = rate - 4.5; // Assuming 4.5% global avg inflation
-}
-
-// 3. FIRE Calculation (Rule of 25)
-const annualExpenses = expenses * 12;
-const fireNumber = annualExpenses * 25;
-
-// 4. Generate Data for Chart
 const labels = [];
 const data = [];
 let currentBalance = P;
-let fireYear = null;
-const monthlyRate = (rate / 100) / 12;
 
-for (let i = 0; i <= years; i++) {
+for (let i = 0; i <= n/12; i++) {
 labels.push("Year " + i);
 data.push(currentBalance);
-
-// Check if we hit FIRE number this year
-if (fireYear === null && currentBalance >= fireNumber) {
-fireYear = i;
-}
-
-// Compound for next year
 for (let m = 0; m < 12; m++) {
-currentBalance = (currentBalance * (1 + monthlyRate)) + PMT;
+currentBalance = (currentBalance * (1 + r)) + PMT;
 }
 }
 
-// 5. Display Text Results
 document.getElementById('results-area').style.display = 'block';
-document.getElementById('res-years').innerText = years;
 
-const formatter = new Intl.NumberFormat(getLocale(currency), { style: 'currency', currency: currency, maximumFractionDigits: 0 });
+// Formatter
+let locale = 'en-US';
+if(currency === 'ZAR') locale = 'en-ZA';
+if(currency === 'GBP') locale = 'en-GB';
+
+const formatter = new Intl.NumberFormat(locale, { style: 'currency', currency: currency, maximumFractionDigits: 0 });
 
 document.getElementById('final-wealth').innerText = formatter.format(data[data.length - 1]);
-document.getElementById('fire-number').innerText = formatter.format(fireNumber);
+document.getElementById('subtitle').innerText = `in ${n/12} years`;
 
-const statusDiv = document.getElementById('fire-status');
-if (fireYear !== null) {
-statusDiv.innerHTML = `✅ You reach Financial Freedom in <strong>Year ${fireYear}</strong>`;
-statusDiv.style.color = 'green';
-} else {
-statusDiv.innerHTML = `⚠️ You will not reach Freedom in ${years} years. Increase contribution!`;
-statusDiv.style.color = '#d9534f';
-}
-
-// 6. Render Chart
-renderChart(labels, data, fireNumber, currency);
-}
-
-function renderChart(labels, data, goal, cur) {
+// Chart
 const ctx = document.getElementById('wealthChart').getContext('2d');
+if (myChart) myChart.destroy();
 
-if (myChart) myChart.destroy(); // Clear old chart
+// Chart color based on theme
+const isDark = document.body.getAttribute('data-theme') === 'dark';
+const lineColor = isDark ? '#bb86fc' : '#007bff';
+const gridColor = isDark ? '#333' : '#eee';
+const textColor = isDark ? '#aaa' : '#666';
 
 myChart = new Chart(ctx, {
 type: 'line',
 data: {
 labels: labels,
 datasets: [{
-label: 'Projected Wealth',
+label: 'Wealth Growth',
 data: data,
-borderColor: '#28a745',
-backgroundColor: 'rgba(40, 167, 69, 0.1)',
+borderColor: lineColor,
+backgroundColor: isDark ? 'rgba(187, 134, 252, 0.1)' : 'rgba(0, 123, 255, 0.1)',
 fill: true,
-tension: 0.3
-},
-{
-label: 'Freedom Goal',
-data: Array(labels.length).fill(goal),
-borderColor: '#dc3545',
-borderDash: [5, 5],
-pointRadius: 0,
-fill: false
+tension: 0.4
 }]
 },
 options: {
 responsive: true,
 maintainAspectRatio: false,
 scales: {
-y: {
-beginAtZero: true,
-grid: { color: '#f0f0f0' },
-ticks: {
-callback: function(value) {
-return new Intl.NumberFormat(getLocale(cur), { style: 'currency', currency: cur, notation: "compact" }).format(value);
-}
-}
+y: { grid: { color: gridColor }, ticks: { color: textColor, callback: (val) => formatter.format(val) } },
+x: { grid: { display: false }, ticks: { color: textColor } }
 },
-x: { grid: { display: false } }
-}
+plugins: { legend: { display: false } }
 }
 });
 }
 
-function getLocale(currency) {
-if (currency === 'ZAR') return 'en-ZA';
-if (currency === 'EUR') return 'de-DE';
-if (currency === 'GBP') return 'en-GB';
-return 'en-US';
-}
-
-// Initialize with South African Default
-document.addEventListener('DOMContentLoaded', () => {
-calculate();
-});
+// Init
+window.onload = function() {
+loadData();
+};
 </script>
 
 </body>
