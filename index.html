@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google Analytics -->
+<!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-23J9CWS8J2"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
@@ -9,13 +9,24 @@ function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-23J9CWS8J2');
 </script>
-<!-- End Google Analytics -->
+
+<!-- GoatCounter -->
+<script data-goatcounter="https://the-sa-wallet.goatcounter.com/count"
+async src="https://gc.zgo.at/count.js"></script>
+
+<!-- CSP -->
 <meta http-equiv="Content-Security-Policy"
 content="
 default-src 'self';
-script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com;
-connect-src 'self' https://www.google-analytics.com;
-img-src 'self' data: https://www.google-analytics.com;
+script-src 'self' 'unsafe-inline'
+https://www.googletagmanager.com
+https://www.google-analytics.com
+https://gc.zgo.at;
+connect-src 'self'
+https://www.google-analytics.com
+https://gc.zgo.at;
+img-src 'self' data:
+https://www.google-analytics.com;
 style-src 'self' 'unsafe-inline';
 ">
 <meta charset="UTF-8">
