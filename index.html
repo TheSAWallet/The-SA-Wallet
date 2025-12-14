@@ -178,6 +178,14 @@ padding-top: 20px;
 <label>Net Monthly Income (Take-Home Pay)</label>
 <input type="text" inputmode="decimal" id="afford_net_income" placeholder="e.g. 20 000" onkeyup="formatCurrency(this)">
 
+<label>How many people do you financially support?</label>
+<select id="afford_household_size">
+<option value="1">1 (Just me)</option>
+<option value="2">2</option>
+<option value="3">3 - 4</option>
+<option value="5">5+</option>
+</select>
+
 <label>Existing Monthly Debt Payments (Total of all loans, cards, etc.)</label>
 <input type="text" inputmode="decimal" id="afford_existing_debt" value="0" onkeyup="formatCurrency(this)">
 
@@ -196,7 +204,7 @@ padding-top: 20px;
 </div>
 
 <div id="res-afford" class="result-box">
-<h3>Based on Bank Rules (35% Debt-to-Income)</h3>
+<h3>Based on Bank Rules (35% DTI & Living Costs)</h3>
 
 <div class="afford-row">
 <div class="res-row"><span>Max Monthly Debt Capacity:</span> <span class="afford-total" id="ra_capacity">R0</span></div>
@@ -219,7 +227,7 @@ padding-top: 20px;
 </div>
 
 <div class="note">
-You can afford **either** the maximum car **OR** the maximum bond shown, but not both at the same time, as this would exceed your capacity.
+You can afford **either** the maximum car **OR** the maximum bond shown, but not both at the same time, as this would exceed your remaining budget.
 </div>
 </div>
 </div>
@@ -399,7 +407,7 @@ document.getElementById('medical_inputs').style.display = 'none';
 document.getElementById('res-tax').style.display = 'none';
 }
 
-// FIX 3: Updates the Affordability Bond Years Label
+// Updates the Affordability Bond Years Label
 function updateAffordLabels() {
 const selectedYear = document.getElementById('afford_bond_years').value;
 document.getElementById('bondYearsLabel').innerText = selectedYear;
@@ -410,6 +418,7 @@ document.getElementById('afford_net_income').value = '';
 document.getElementById('afford_existing_debt').value = '0';
 document.getElementById('afford_bond_years').value = '20';
 document.getElementById('afford_rate').value = 11.75;
+document.getElementById('afford_household_size').value = '1';
 document.getElementById('res-afford').style.display = 'none';
 updateAffordLabels();
 }
@@ -514,19 +523,38 @@ document.getElementById('pay_note').innerText = noteText;
 document.getElementById('res-tax').style.display = 'block';
 }
 
-// 2. AFFORDABILITY LOGIC (FIX 1: Car Affordability now considers existing debt)
+// 2. AFFORDABILITY LOGIC (V2.6: Incorporates Living Expenses)
 function calcAfford() {
 const netIncome = getVal('afford_net_income');
 const existingDebt = getVal('afford_existing_debt');
 const rate = getVal('afford_rate');
 const bondYears = parseFloat(document.getElementById('afford_bond_years').value);
 const carMonths = 60; // Standard 5 years
+const householdSize = document.getElementById('afford_household_size').value;
 
-// Max capacity based on 35% rule (standard bank limit for total debt)
-const maxCapacity = netIncome * 0.35;
+// Living Expense Benchmarks based on common SA estimates
+let livingExpenseBenchmark = 0;
+if (householdSize === '1') livingExpenseBenchmark = 6000;
+else if (householdSize === '2') livingExpenseBenchmark = 9000;
+else if (householdSize === '3') livingExpenseBenchmark = 12000; // Covers 3-4 people
+else if (householdSize === '5') livingExpenseBenchmark = 15000; // Covers 5+ people
 
-// Remaining budget for NEW debt (Bond or Car)
-const remainingBudget = Math.max(0, maxCapacity - existingDebt);
+// 1. Calculate DISPOSABLE INCOME (Income minus essential living costs)
+const disposableIncome = netIncome - livingExpenseBenchmark;
+
+// 2. Calculate MAX DEBT CAPACITY (35% DTI rule based on Gross/Net, used here as safety cap)
+const maxDebtCapacity = netIncome * 0.35;
+
+// 3. The actual available budget for NEW loans is the MINIMUM of:
+// a) What's left after living expenses, AND
+// b) What the bank allows after existing debt.
+
+// The Remaining Budget will be the minimum of:
+// (Disposable Income minus Existing Debt) OR (Max DTI minus Existing Debt)
+const remainingBudgetBasedOnDisposable = Math.max(0, disposableIncome - existingDebt);
+const remainingBudgetBasedOnDTI = Math.max(0, maxDebtCapacity - existingDebt);
+
+const remainingBudget = Math.min(remainingBudgetBasedOnDisposable, remainingBudgetBasedOnDTI);
 
 // --- BOND REVERSE CALCULATION ---
 const r_bond = (rate / 100) / 12;
@@ -534,7 +562,7 @@ const n_bond = bondYears * 12;
 const P_bond = (remainingBudget * (Math.pow(1 + r_bond, n_bond) - 1)) / (r_bond * Math.pow(1 + r_bond, n_bond));
 
 // --- CAR REVERSE CALCULATION ---
-// FIX 1: Max car payment is the MINIMUM of (20% of net income) OR (the total remaining budget).
+// Max car payment is the MINIMUM of (20% of net income) OR (the total remaining budget).
 const maxCarPaymentBudget = Math.min(netIncome * 0.20, remainingBudget);
 
 const r_car = (rate / 100) / 12;
@@ -542,9 +570,9 @@ const n_car = carMonths;
 const P_car = (maxCarPaymentBudget * (Math.pow(1 + r_car, n_car) - 1)) / (r_car * Math.pow(1 + r_car, n_car));
 
 // Display results
-updateAffordLabels(); // FIX 3: Dynamic Bond Label
-document.getElementById('ra_capacity').innerText = fmt.format(maxCapacity);
-document.getElementById('ra_remaining_budget').innerText = fmt.format(remainingBudget);
+updateAffordLabels();
+document.getElementById('ra_capacity').innerText = fmt.format(maxDebtCapacity); // Shows the DTI Cap
+document.getElementById('ra_remaining_budget').innerText = fmt.format(remainingBudget); // Shows the actual limit
 document.getElementById('ra_max_bond').innerText = fmt.format(P_bond);
 document.getElementById('ra_max_car').innerText = fmt.format(P_car);
 
