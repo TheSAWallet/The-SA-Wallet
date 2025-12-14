@@ -1,20 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-ZJ9CWSBBJ2"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-ZJ9CWSBBJ2');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>The SA Wallet | Tax 2026, Bond & Vehicle Estimator</title>
-<meta name="description" content="The SA Wallet: Free South African financial tools. Estimate 2026 SARS Tax, Vehicle Finance, Bond Repayments, and Savings.">
+<title>The SA Wallet | Tax 2026, Affordability, Bond & Vehicle Estimator</title>
+<meta name="description" content="The SA Wallet: Free South African financial tools. Estimate 2026 SARS Tax, Vehicle Finance, Bond Repayments, and Affordability.">
 <meta name="author" content="The SA Wallet">
 <meta name="robots" content="index, follow">
 
@@ -27,8 +18,8 @@
 <meta name="theme-color" content="#1a202c">
 
 <style>
-:root { --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --primary: #2563eb; --accent: #10b981; --border: #e5e7eb; --danger: #ef4444; }
-[data-theme="dark"] { --bg: #111827; --card: #1f2937; --text: #f9fafb; --primary: #60a5fa; --accent: #34d399; --border: #374151; }
+:root { --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --primary: #2563eb; --accent: #10b981; --border: #e5e7eb; --danger: #ef4444; --warning: #f59e0b; }
+[data-theme="dark"] { --bg: #111827; --card: #1f2937; --text: #f9fafb; --primary: #60a5fa; --accent: #34d399; --border: #374151; --warning: #fcd34d; }
 
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; transition: 0.3s; }
 .wrapper { max-width: 600px; margin: 0 auto; padding: 15px; min-height: 100vh; }
@@ -51,7 +42,7 @@ h3 { font-size: 0.95rem; text-transform: uppercase; color: var(--primary); margi
 
 label { display: block; font-weight: 600; font-size: 0.85em; margin-bottom: 8px; color: var(--text); opacity: 0.9; }
 
-/* UPDATED INPUT STYLE FOR TEXT MODE */
+/* Input Style for Text Mode with Spacing */
 input, select { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 16px; background: var(--bg); color: var(--text); box-sizing: border-box; margin-bottom: 15px; }
 input:focus { border-color: var(--primary); outline: none; }
 
@@ -91,6 +82,15 @@ line-height: 1.6;
 border-top: 1px solid var(--border);
 padding-top: 20px;
 }
+
+/* Specific Affordability Results Styling */
+.afford-row { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dotted var(--border); }
+.afford-row:last-child { border-bottom: none; }
+.afford-total { font-size: 1.1rem; color: var(--danger); font-weight: bold; }
+
+/* Overpayment Styling */
+.overpay-save { background: var(--warning); padding: 15px; border-radius: 10px; margin-top: 15px; color: #333; }
+.overpay-save p { margin: 0; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -103,6 +103,7 @@ padding-top: 20px;
 
 <div class="nav-tabs">
 <button class="tab-btn active" onclick="switchTab('tax', this)">💸 Tax '26</button>
+<button class="tab-btn" onclick="switchTab('afford', this)">✅ Affordability</button>
 <button class="tab-btn" onclick="switchTab('vehicle', this)">🚗 Car</button>
 <button class="tab-btn" onclick="switchTab('bond', this)">🏠 Bond</button>
 <button class="tab-btn" onclick="switchTab('wealth', this)">📈 Savings</button>
@@ -166,7 +167,60 @@ padding-top: 20px;
 <span style="font-weight:bold;">Monthly Take Home:</span>
 </div>
 <div class="res-total" id="rt_net">R0.00</div>
-<div class="note" id="pay_note">Note: Values shown are based on your selected frequency.</div>
+<div class="note" id="pay_note">Note: Monthly values shown are based on your selected frequency.</div>
+</div>
+</div>
+</div>
+
+<div id="afford" class="tool-section">
+<div class="card">
+<h2>✅ Affordability Estimator</h2>
+<label>Net Monthly Income (Take-Home Pay)</label>
+<input type="text" inputmode="decimal" id="afford_net_income" placeholder="e.g. 20 000" onkeyup="formatCurrency(this)">
+
+<label>Existing Monthly Debt Payments (Total of all loans, cards, etc.)</label>
+<input type="text" inputmode="decimal" id="afford_existing_debt" value="0" onkeyup="formatCurrency(this)">
+
+<label>Bond Term (Years)</label>
+<select id="afford_bond_years" onchange="updateAffordLabels()">
+<option value="20">20 Years</option>
+<option value="30">30 Years</option>
+<option value="15">15 Years</option>
+</select>
+<label>Default Interest Rate (%)</label>
+<input type="number" id="afford_rate" value="11.75" min="0">
+
+<div class="btn-group">
+<button class="btn-reset" onclick="resetAfford()">Reset</button>
+<button class="btn-calc" onclick="calcAfford()">Calculate</button>
+</div>
+
+<div id="res-afford" class="result-box">
+<h3>Based on Bank Rules (35% Debt-to-Income)</h3>
+
+<div class="afford-row">
+<div class="res-row"><span>Max Monthly Debt Capacity:</span> <span class="afford-total" id="ra_capacity">R0</span></div>
+<div class="note">This is the maximum repayment amount banks generally allow you.</div>
+</div>
+
+<div class="afford-row">
+<div class="res-row"><span>Remaining Monthly Budget:</span> <span class="afford-total" id="ra_remaining_budget">R0</span></div>
+<div class="note">This is the maximum monthly instalment you can spend on *new* debt (Car OR Bond).</div>
+</div>
+
+<div class="afford-row" style="background: var(--bg); padding: 10px; border-radius: 8px;">
+<label style="color:var(--primary); font-size:1.0em;">Max Bond Affordability (<span id="bondYearsLabel">20</span> Years):</label>
+<div class="res-total" id="ra_max_bond">R0</div>
+</div>
+
+<div class="afford-row" style="background: var(--bg); padding: 10px; border-radius: 8px;">
+<label style="color:var(--primary); font-size:1.0em;">Max Car Price Affordability (5 Years):</label>
+<div class="res-total" id="ra_max_car">R0</div>
+</div>
+
+<div class="note">
+You can afford **either** the maximum car **OR** the maximum bond shown, but not both at the same time, as this would exceed your capacity.
+</div>
 </div>
 </div>
 </div>
@@ -176,7 +230,6 @@ padding-top: 20px;
 <h2>🚗 Vehicle Finance</h2>
 <label>Vehicle Price (R)</label>
 <input type="text" inputmode="decimal" id="car_price" placeholder="e.g. 300 000" onkeyup="formatCurrency(this)">
-
 <label>Deposit (Optional)</label>
 <input type="text" inputmode="decimal" id="car_deposit" value="0" onkeyup="formatCurrency(this)">
 
@@ -188,10 +241,15 @@ padding-top: 20px;
 <label>Payment Period</label>
 <select id="car_months">
 <option value="60">60 Months (5 Years)</option>
-<option value="72">72 Months (6 Years)</option>
 <option value="48">48 Months (4 Years)</option>
+<option value="54">54 Months (4.5 Years)</option>
+<option value="72">72 Months (6 Years)</option>
+<option value="84">84 Months (7 Years)</option>
 <option value="96">96 Months (8 Years)</option>
 </select>
+
+<label>Extra Monthly Payment (Optional)</label>
+<input type="text" inputmode="decimal" id="car_overpay" value="0" onkeyup="formatCurrency(this)">
 
 <div class="btn-group">
 <button class="btn-reset" onclick="resetCar()">Reset</button>
@@ -203,6 +261,8 @@ padding-top: 20px;
 <div class="res-row"><span>Balloon Amount (Owed at end):</span> <span class="res-val" id="rc_balloon_amt">R0</span></div>
 <div class="res-row"><span>Total Interest:</span> <span class="res-val" id="rc_interest">R0</span></div>
 <div class="res-total" id="rc_total">R0 /pm</div>
+<div id="rc_overpay_result" class="overpay-save" style="display:none;"></div>
+<p id="rc_overpay_note" class="note" style="display:none; margin-top:-5px;">*Overpayment savings are estimates.</p>
 </div>
 </div>
 </div>
@@ -225,6 +285,9 @@ padding-top: 20px;
 <option value="15">15 Years</option>
 </select>
 
+<label>Extra Monthly Payment (Optional)</label>
+<input type="text" inputmode="decimal" id="bond_overpay" value="0" onkeyup="formatCurrency(this)">
+
 <div class="btn-group">
 <button class="btn-reset" onclick="resetBond()">Reset</button>
 <button class="btn-calc" onclick="calcBond()">Estimate</button>
@@ -234,6 +297,8 @@ padding-top: 20px;
 <div class="res-row"><span>Loan Amount:</span> <span class="res-val" id="rb_loan">R0</span></div>
 <div class="res-row"><span>Total Cost over term:</span> <span class="res-val" id="rb_total_cost">R0</span></div>
 <div class="res-total" id="rb_monthly">R0 /pm</div>
+<div id="rb_overpay_result" class="overpay-save" style="display:none;"></div>
+<p id="rb_overpay_note" class="note" style="display:none; margin-top:-5px;">*Overpayment savings are estimates.</p>
 </div>
 </div>
 </div>
@@ -286,31 +351,39 @@ const isActive = document.getElementById('tax_medical_active').checked;
 document.getElementById('medical_inputs').style.display = isActive ? 'block' : 'none';
 }
 
-function toggleBonusOption() {
-const bonusGroup = document.getElementById('bonus_group');
-bonusGroup.style.display = 'flex';
-}
-
-// --- NEW: FORMATTING ENGINE ---
-// Adds spaces (1 000 000) as user types
+// --- FORMATTING ENGINE ---
 function formatCurrency(input) {
-// Remove existing spaces and non-numeric chars
 let value = input.value.replace(/[^0-9.]/g, '');
-// Add spaces every 3 digits (integer part only)
 let parts = value.split('.');
 parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 input.value = parts.join('.');
 }
 
-// --- NEW: CLEANING HELPER ---
-// Strips spaces so we can do math
 function getVal(id) {
 const raw = document.getElementById(id).value;
-const clean = raw.replace(/ /g, ''); // Remove spaces
+const clean = raw.replace(/ /g, '');
 return Math.max(0, parseFloat(clean) || 0);
 }
 
 const fmt = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
+
+// Function to calculate remaining months given overpayment
+function calcMonthsToZero(P, r_monthly, M, overpay) {
+if (P <= 0 || M <= 0) return 0;
+let balance = P;
+let totalPayment = M + overpay;
+let months = 0;
+
+if (totalPayment <= M) return 9999;
+
+while (balance > 0 && months < 3600) {
+months++;
+let interest = balance * r_monthly;
+let principalPaid = totalPayment - interest;
+balance -= principalPaid;
+}
+return months;
+}
 
 // --- RESET FUNCTIONS ---
 function resetTax() {
@@ -326,13 +399,31 @@ document.getElementById('medical_inputs').style.display = 'none';
 document.getElementById('res-tax').style.display = 'none';
 }
 
+// FIX 3: Updates the Affordability Bond Years Label
+function updateAffordLabels() {
+const selectedYear = document.getElementById('afford_bond_years').value;
+document.getElementById('bondYearsLabel').innerText = selectedYear;
+}
+
+function resetAfford() {
+document.getElementById('afford_net_income').value = '';
+document.getElementById('afford_existing_debt').value = '0';
+document.getElementById('afford_bond_years').value = '20';
+document.getElementById('afford_rate').value = 11.75;
+document.getElementById('res-afford').style.display = 'none';
+updateAffordLabels();
+}
+
 function resetCar() {
 document.getElementById('car_price').value = '';
 document.getElementById('car_deposit').value = '0';
 document.getElementById('car_balloon_perc').value = 0;
 document.getElementById('car_rate').value = 11.75;
 document.getElementById('car_months').value = 60;
+document.getElementById('car_overpay').value = '0';
 document.getElementById('res-car').style.display = 'none';
+document.getElementById('rc_overpay_result').style.display = 'none';
+document.getElementById('rc_overpay_note').style.display = 'none';
 }
 
 function resetBond() {
@@ -340,7 +431,10 @@ document.getElementById('bond_price').value = '';
 document.getElementById('bond_deposit').value = '0';
 document.getElementById('bond_rate').value = 11.75;
 document.getElementById('bond_years').value = 20;
+document.getElementById('bond_overpay').value = '0';
 document.getElementById('res-bond').style.display = 'none';
+document.getElementById('rb_overpay_result').style.display = 'none';
+document.getElementById('rb_overpay_note').style.display = 'none';
 }
 
 function resetSave() {
@@ -351,20 +445,18 @@ document.getElementById('save_years').value = 10;
 document.getElementById('res-save').style.display = 'none';
 }
 
-// --- CALCULATION LOGIC (Using getVal for spaced inputs) ---
+// --- CALCULATION LOGIC ---
 
+// 1. TAX LOGIC (Full 2026 Calculation)
 function calcTax() {
-const amount = getVal('tax_income'); // Uses helper
+const amount = getVal('tax_income');
 const period = document.getElementById('tax_period').value;
 const use13th = document.getElementById('tax_13th').checked;
 const divisor = use13th ? 13 : 12;
 
 let annualGross = 0;
-if (period === 'annual') {
-annualGross = amount;
-} else {
-annualGross = use13th ? amount * 13 : amount * 12;
-}
+if (period === 'annual') { annualGross = amount; }
+else { annualGross = use13th ? amount * 13 : amount * 12; }
 
 const pensionPerc = getVal('tax_pension_perc');
 const pensionDedAnnual = annualGross * (pensionPerc / 100);
@@ -422,45 +514,134 @@ document.getElementById('pay_note').innerText = noteText;
 document.getElementById('res-tax').style.display = 'block';
 }
 
+// 2. AFFORDABILITY LOGIC (FIX 1: Car Affordability now considers existing debt)
+function calcAfford() {
+const netIncome = getVal('afford_net_income');
+const existingDebt = getVal('afford_existing_debt');
+const rate = getVal('afford_rate');
+const bondYears = parseFloat(document.getElementById('afford_bond_years').value);
+const carMonths = 60; // Standard 5 years
+
+// Max capacity based on 35% rule (standard bank limit for total debt)
+const maxCapacity = netIncome * 0.35;
+
+// Remaining budget for NEW debt (Bond or Car)
+const remainingBudget = Math.max(0, maxCapacity - existingDebt);
+
+// --- BOND REVERSE CALCULATION ---
+const r_bond = (rate / 100) / 12;
+const n_bond = bondYears * 12;
+const P_bond = (remainingBudget * (Math.pow(1 + r_bond, n_bond) - 1)) / (r_bond * Math.pow(1 + r_bond, n_bond));
+
+// --- CAR REVERSE CALCULATION ---
+// FIX 1: Max car payment is the MINIMUM of (20% of net income) OR (the total remaining budget).
+const maxCarPaymentBudget = Math.min(netIncome * 0.20, remainingBudget);
+
+const r_car = (rate / 100) / 12;
+const n_car = carMonths;
+const P_car = (maxCarPaymentBudget * (Math.pow(1 + r_car, n_car) - 1)) / (r_car * Math.pow(1 + r_car, n_car));
+
+// Display results
+updateAffordLabels(); // FIX 3: Dynamic Bond Label
+document.getElementById('ra_capacity').innerText = fmt.format(maxCapacity);
+document.getElementById('ra_remaining_budget').innerText = fmt.format(remainingBudget);
+document.getElementById('ra_max_bond').innerText = fmt.format(P_bond);
+document.getElementById('ra_max_car').innerText = fmt.format(P_car);
+
+document.getElementById('res-afford').style.display = 'block';
+}
+
+// 3. VEHICLE LOGIC (Overpayment)
 function calcCar() {
 const price = getVal('car_price');
 const deposit = getVal('car_deposit');
 const balloonPerc = getVal('car_balloon_perc');
+const overpay = getVal('car_overpay');
 
 const principal = Math.max(0, price - deposit);
 const balloonAmount = price * (balloonPerc / 100);
 const r = (getVal('car_rate')) / 100 / 12;
-const n = parseFloat(document.getElementById('car_months').value);
+const n_orig = parseFloat(document.getElementById('car_months').value);
 
 const loanPortion = principal - balloonAmount;
-const paymentLoan = (loanPortion * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+const paymentLoan = (loanPortion * r * Math.pow(1 + r, n_orig)) / (Math.pow(1 + r, n_orig) - 1);
 const paymentBalloon = balloonAmount * r;
 const totalMonthly = paymentLoan + paymentBalloon;
-const totalInterest = (totalMonthly * n) + balloonAmount - principal;
+const totalInterest = (totalMonthly * n_orig) + balloonAmount - principal;
 
 document.getElementById('rc_loan').innerText = fmt.format(principal);
 document.getElementById('rc_balloon_amt').innerText = fmt.format(balloonAmount);
 document.getElementById('rc_interest').innerText = fmt.format(totalInterest);
 document.getElementById('rc_total').innerText = fmt.format(totalMonthly) + " /pm";
+
+// --- Overpayment Calculation ---
+const P_no_balloon = principal - balloonAmount;
+if (overpay > 0 && P_no_balloon > 0) {
+const M_no_balloon = (principal * r * Math.pow(1 + r, n_orig)) / (Math.pow(1 + r, n_orig) - 1);
+
+const monthsToZero = calcMonthsToZero(principal, r, M_no_balloon, overpay);
+const yearsSaved = (n_orig - monthsToZero) / 12;
+const newTotalCost = (M_no_balloon + overpay) * monthsToZero;
+const interestSaved = totalInterest - (newTotalCost - principal) + balloonAmount;
+
+if(monthsToZero < n_orig) {
+document.getElementById('rc_overpay_result').innerHTML =
+`<p>Extra R${fmt.format(overpay).slice(1)}/pm saves you **${Math.round(yearsSaved * 10) / 10} years** and **${fmt.format(interestSaved)}** in interest!</p>`;
+document.getElementById('rc_overpay_result').style.display = 'block';
+document.getElementById('rc_overpay_note').style.display = 'block';
+} else {
+document.getElementById('rc_overpay_result').style.display = 'none';
+document.getElementById('rc_overpay_note').style.display = 'none';
+}
+} else {
+document.getElementById('rc_overpay_result').style.display = 'none';
+document.getElementById('rc_overpay_note').style.display = 'none';
+}
+
 document.getElementById('res-car').style.display = 'block';
 }
 
+// 4. BOND LOGIC (Overpayment)
 function calcBond() {
 const price = getVal('bond_price');
 const deposit = getVal('bond_deposit');
+const overpay = getVal('bond_overpay');
 const P = Math.max(0, price - deposit);
 const r = (getVal('bond_rate')) / 100 / 12;
-const n = (parseFloat(document.getElementById('bond_years').value) || 0) * 12;
+const n_orig = (parseFloat(document.getElementById('bond_years').value) || 0) * 12;
 
-const monthly = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-const total = monthly * n;
+const monthly = (P * r * Math.pow(1 + r, n_orig)) / (Math.pow(1 + r, n_orig) - 1);
+const total = monthly * n_orig;
 
 document.getElementById('rb_loan').innerText = fmt.format(P);
 document.getElementById('rb_total_cost').innerText = fmt.format(total);
 document.getElementById('rb_monthly').innerText = fmt.format(monthly) + " /pm";
+
+// --- Overpayment Calculation ---
+if (overpay > 0 && P > 0) {
+const monthsToZero = calcMonthsToZero(P, r, monthly, overpay);
+const yearsSaved = (n_orig - monthsToZero) / 12;
+const newTotalCost = (monthly + overpay) * monthsToZero;
+const interestSaved = total - newTotalCost;
+
+if (monthsToZero < n_orig) {
+document.getElementById('rb_overpay_result').innerHTML =
+`<p>Extra R${fmt.format(overpay).slice(1)}/pm saves you **${Math.round(yearsSaved * 10) / 10} years** and **${fmt.format(interestSaved)}** in interest!</p>`;
+document.getElementById('rb_overpay_result').style.display = 'block';
+document.getElementById('rb_overpay_note').style.display = 'block';
+} else {
+document.getElementById('rb_overpay_result').style.display = 'none';
+document.getElementById('rb_overpay_note').style.display = 'none';
+}
+} else {
+document.getElementById('rb_overpay_result').style.display = 'none';
+document.getElementById('rb_overpay_note').style.display = 'none';
+}
+
 document.getElementById('res-bond').style.display = 'block';
 }
 
+// 5. SAVINGS LOGIC
 function calcSave() {
 const P = getVal('save_start');
 const PMT = getVal('save_monthly');
@@ -468,12 +649,8 @@ const r = getVal('save_rate') / 100 / 12;
 const n = getVal('save_years') * 12;
 
 let futureValue;
-if (r === 0) {
-futureValue = P + (PMT * n);
-}
-else {
-futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r;
-}
+if (r === 0) { futureValue = P + (PMT * n); }
+else { futureValue = P * Math.pow(1 + r, n) + (PMT * (Math.pow(1 + r, n) - 1)) / r; }
 
 const totalContrib = P + (PMT * n);
 document.getElementById('rs_contrib').innerText = fmt.format(totalContrib);
@@ -487,6 +664,11 @@ const body = document.body;
 const isDark = body.getAttribute('data-theme') === 'dark';
 body.setAttribute('data-theme', isDark ? 'light' : 'dark');
 }
+
+// Set initial bond label on load
+window.onload = function() {
+updateAffordLabels();
+};
 </script>
 
 </body>
