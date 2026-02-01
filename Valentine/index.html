@@ -7,9 +7,9 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
 body { margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; background-color: #fff0f3; font-family: 'Comic Sans MS', cursive, sans-serif; overflow: hidden; text-align: center; }
-.container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(255, 75, 110, 0.2); width: 85%; z-index: 10; transition: all 0.5s ease; }
+.container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 30px rgba(255, 75, 110, 0.2); width: 85%; z-index: 10; }
 .bear { font-size: 80px; margin-bottom: 10px; }
-h1 { color: #ff4d6d; font-size: 1.5rem; }
+h1 { color: #ff4d6d; font-size: 1.5rem; line-height: 1.4; }
 .buttons { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
 button { padding: 15px; font-size: 1.2rem; border-radius: 15px; border: none; cursor: pointer; transition: 0.3s; -webkit-tap-highlight-color: transparent; }
 #yesBtn { background-color: #ff4d6d; color: white; font-weight: bold; }
@@ -17,10 +17,6 @@ button { padding: 15px; font-size: 1.2rem; border-radius: 15px; border: none; cu
 </style>
 </head>
 <body>
-
-<audio id="loveSong" loop>
-<source src="song.mp3" type="audio/mpeg">
-</audio>
 
 <div class="container" id="content">
 <div class="bear">🐻</div>
@@ -35,31 +31,40 @@ button { padding: 15px; font-size: 1.2rem; border-radius: 15px; border: none; cu
 const yesBtn = document.getElementById('yesBtn');
 const noBtn = document.getElementById('noBtn');
 const content = document.getElementById('content');
-const song = document.getElementById('loveSong');
 
-const noMessages = [
-"Error! Try again! 😘",
-"Bad luck, you're stuck with me! 💍",
-"Wrong answer, Princess! ❤️",
-"Try the red one! 😂"
-];
-
+// Fun "No" logic
 noBtn.addEventListener('click', () => {
-alert(noMessages[Math.floor(Math.random() * noMessages.length)]);
+alert("Bad luck, you're stuck with me! 💍❤️");
 });
 
-yesBtn.addEventListener('click', () => {
-// Start the song
-song.play().catch(e => console.log("Audio blocked: ", e));
+// Magic Sparkle Sound Function (No file needed!)
+function playSparkleSound() {
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+notes.forEach((freq, i) => {
+const osc = audioCtx.createOscillator();
+const gain = audioCtx.createGain();
+osc.type = 'sine';
+osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.1);
+gain.gain.setValueAtTime(0.1, audioCtx.currentTime + i * 0.1);
+gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.5);
+osc.connect(gain);
+gain.connect(audioCtx.destination);
+osc.start(audioCtx.currentTime + i * 0.1);
+osc.stop(audioCtx.currentTime + i * 0.1 + 0.5);
+});
+}
 
-// Change the screen
+yesBtn.addEventListener('click', () => {
+playSparkleSound();
+
 content.innerHTML = `
 <div class="bear">💖🐻💖</div>
-<h1 style="font-size: 2rem;">I LOVE YOU!</h1>
-<p style="color: #ff4d6d; font-size: 1.1rem;">Happy Valentine's Day, Princess!<br>Can't wait for April 20th! 👶🏼🍼</p>
+<h1 style="font-size: 1.6rem;">More details to follow.<br>I love you mamma bear❤️😘</h1>
+<p style="color: #ff4d6d; font-size: 1rem; margin-top: 15px;">Can't wait for April 20th! 👶🏼🍼</p>
 `;
 
-// Fireworks Explosion
+// Fireworks
 const duration = 15 * 1000;
 const animationEnd = Date.now() + duration;
 const interval = setInterval(function() {
@@ -68,7 +73,7 @@ if (timeLeft <= 0) return clearInterval(interval);
 confetti({ particleCount: 40, spread: 360, origin: { x: Math.random(), y: Math.random() - 0.2 } });
 }, 250);
 
-// Flower & Kiss Rain
+// Emoji Rain
 for (let i = 0; i < 70; i++) {
 setTimeout(() => {
 const emojis = ['🌸', '🌹', '🌷', '😘', '❤️'];
@@ -77,6 +82,7 @@ emoji.innerText = emojis[Math.floor(Math.random() * emojis.length)];
 emoji.style.cssText = `position:fixed; left:${Math.random()*100}vw; top:-50px; font-size:${Math.random()*20+20}px; z-index:1000; transition: transform 3s linear;`;
 document.body.appendChild(emoji);
 setTimeout(() => { emoji.style.transform = `translateY(110vh) rotate(${Math.random()*360}deg)`; }, 100);
+setTimeout(() => { emoji.remove(); }, 3500);
 }, i * 200);
 }
 });
