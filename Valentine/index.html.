@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>System Override</title>
+<style>
+* {
+cursor: none !important; /* Hides real mouse on desktop */
+touch-action: none; /* Disables standard scrolling/zooming */
+}
+body {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+margin: 0;
+background-color: #f0f0f2;
+font-family: sans-serif;
+overflow: hidden;
+}
+/* The Fake Mouse Cursor */
+#fakeCursor {
+position: fixed;
+width: 20px;
+height: 20px;
+background-image: url('https://upload.wikimedia.org/wikipedia/commons/3/3e/Mouse_cursor_arrow.svg');
+background-size: contain;
+background-repeat: no-repeat;
+pointer-events: none; /* So it doesn't block clicks */
+z-index: 9999;
+transition: transform 0.1s ease-out;
+}
+.container {
+text-align: center;
+background: white;
+padding: 40px 20px;
+border-radius: 15px;
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+width: 85%;
+}
+.error-text {
+color: red;
+font-size: 0.7rem;
+margin-bottom: 10px;
+font-weight: bold;
+}
+.buttons {
+display: flex;
+justify-content: center;
+gap: 15px;
+margin-top: 20px;
+}
+button {
+padding: 12px 25px;
+border-radius: 8px;
+border: 1px solid #ccc;
+font-weight: bold;
+}
+#yesBtn { background: #4CAF50; color: white; border: none; }
+#noBtn { background: #fff; position: relative; }
+</style>
+</head>
+<body>
+
+<div id="fakeCursor"></div>
+
+<div class="container">
+<div class="error-text">⚠️ TOUCH INPUT FAILURE: EMULATING MOUSE...</div>
+<h2>Simone, will you be my Valentine?</h2>
+<div class="buttons">
+<button id="yesBtn">Yes</button>
+<button id="noBtn">No</button>
+</div>
+</div>
+
+<script>
+const cursor = document.getElementById('fakeCursor');
+const noBtn = document.getElementById('noBtn');
+const yesBtn = document.getElementById('yesBtn');
+
+// 1. Make the fake cursor follow the finger
+document.addEventListener('touchmove', (e) => {
+const touch = e.touches[0];
+cursor.style.left = touch.clientX + 'px';
+cursor.style.top = touch.clientY + 'px';
+
+// Check distance between fake cursor and "No" button
+const btnRect = noBtn.getBoundingClientRect();
+const distance = Math.hypot(
+touch.clientX - (btnRect.left + btnRect.width / 2),
+touch.clientY - (btnRect.top + btnRect.height / 2)
+);
+
+// If "mouse" gets too close (within 80px), move the button
+if (distance < 80) {
+moveNoButton();
+}
+});
+
+// Also works for mouse move on PC
+document.addEventListener('mousemove', (e) => {
+cursor.style.left = e.clientX + 'px';
+cursor.style.top = e.clientY + 'px';
+});
+
+function moveNoButton() {
+const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
+const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+noBtn.style.position = 'fixed';
+noBtn.style.left = x + 'px';
+noBtn.style.top = y + 'px';
+}
+
+yesBtn.addEventListener('touchstart', () => {
+alert("Correct choice! I love you Simone! ❤️");
+});
+
+// desktop fallback
+yesBtn.addEventListener('click', () => {
+alert("Correct choice! I love you Simone! ❤️");
+});
+</script>
+</body>
+</html>
